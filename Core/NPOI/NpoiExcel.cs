@@ -46,7 +46,7 @@ public class NpoiExcel : IExcel
                         bomLine.Value = cell.StringCellValue;
                         break;
                     case nameof(BomLine.Positions):
-                        bomLine.Positions = new List<string>(cell.StringCellValue.Split(','));
+                        bomLine.Positions = cell.StringCellValue;
                         break;
                 }
             }
@@ -64,12 +64,15 @@ public class NpoiExcel : IExcel
         var headerRow = sheet.CreateRow(0);
 
         // Create header rows from ExcelColumns
-        var headers = Core.ExcelColumns.All.Select(x => x.FieldName).ToList();
-        for (int i = 0; i < headers.Count; i++)
+        if (ExcelColumns.All != null)
         {
-            headerRow.CreateCell(i).SetCellValue(headers[i]);
+            var headers = ExcelColumns.All.Select(x => x.HeaderName).ToList();
+            for (int i = 0; i < headers.Count; i++)
+            {
+                headerRow.CreateCell(i).SetCellValue(headers[i]);
+            }
         }
-    
+
         // Access BomLine properties by property name from ExcelColumns
         foreach (var bomLine in bom)
         {

@@ -1,12 +1,14 @@
+using Sylvan.Data;
 using Sylvan.Data.Excel;
 
-namespace Core.Sylvan;
+namespace Core.SylvenImplementation;
 
 public class SylvanExcel : IExcel
 {
     public List<BomLine> ReadBom(string path)
     {
-        using ExcelDataReader edr = ExcelDataReader.Create("data.xls");
+        using var edr = ExcelDataReader.Create(path);
+        return edr.GetRecords<BomLine>().ToList();
     }
 
     public void WriteBom(string path, List<BomLine> bom)
