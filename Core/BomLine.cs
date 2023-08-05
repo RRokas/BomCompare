@@ -8,5 +8,5 @@ public class BomLine
     public string PartDescription { get; set; }
     public double Quantity { get; set; }
     public string Value { get; set; }
-    public string Positions { get; set; }
+    public List<string> Positions { get; set; }
 }

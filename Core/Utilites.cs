@@ -17,7 +17,10 @@ public class Utilites
                 PartDescription = GetRandomString(random, 30),
                 Quantity = random.Next(1000000, 9999999),
                 Value = GetRandomString(random, 10),
-                Positions = $"{GetRandomString(random, 5)}, {GetRandomString(random, 5)}, {GetRandomString(random, 5)}"
+                Positions = new List<string> {
+                    GetRandomString(random, 5),
+                    GetRandomString(random, 5),
+                    GetRandomString(random, 5)}
             };
             bom.Add(bomLine);
         }

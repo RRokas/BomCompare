@@ -46,7 +46,7 @@ public class NpoiExcel : IExcel
                         bomLine.Value = cell.StringCellValue;
                         break;
                     case nameof(BomLine.Positions):
-                        bomLine.Positions = cell.StringCellValue;
+                        bomLine.Positions = cell.StringCellValue.Split(',').ToList();
                         break;
                 }
             }
