@@ -4,14 +4,16 @@ namespace Core;
 
 public static class ExcelColumns
 {
-    public const string InternalPartId = "Internal Part ID";
-    public const string ManufacturerPartId = "Manufacturer Part ID";
-    public const string ManufacturerName = "Manufacturer Name";
-    public const string PartDescription = "Part Description";
     public const string Quantity = "Quantity";
+    public const string PartNumber = "Part Number";
+    public const string Designators = "Designator";
     public const string Value = "Value";
-    public const string Positions = "Positions";
-
+    public const string SMD = "SMD";
+    public const string Description = "Description";
+    public const string Manufacturer = "Manufacturer";
+    public const string ManufacturerPartNumber = "Manufacturer Part Number";
+    public const string Distributor = "Distributor";
+    public const string DistributorPartNumber = "Distributor Part Number";
     private static List<(string FieldName, string HeaderName)>? _all;  
     
     public static IReadOnlyList<(string FieldName, string HeaderName)>? All 

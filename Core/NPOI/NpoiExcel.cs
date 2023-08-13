@@ -1,3 +1,4 @@
+using System.Collections;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
@@ -25,29 +26,21 @@ public class NpoiExcel : IExcel
                 var value = columnIndex.Values.First();
                 var cell = row.GetCell(value);
 
-                switch (key)
+                if (key == nameof(BomLine.Quantity)) 
                 {
-                    case nameof(BomLine.InternalPartId):
-                        bomLine.InternalPartId = cell.StringCellValue;
-                        break;
-                    case nameof(BomLine.ManufacturerPartId):
-                        bomLine.ManufacturerPartId = cell.StringCellValue;
-                        break;
-                    case nameof(BomLine.ManufacturerName):
-                        bomLine.ManufacturerName = cell.StringCellValue;
-                        break;
-                    case nameof(BomLine.PartDescription):
-                        bomLine.PartDescription = cell.StringCellValue;
-                        break;
-                    case nameof(BomLine.Quantity):
-                        bomLine.Quantity = (int)cell.NumericCellValue;
-                        break;
-                    case nameof(BomLine.Value):
-                        bomLine.Value = cell.StringCellValue;
-                        break;
-                    case nameof(BomLine.Positions):
-                        bomLine.Positions = cell.StringCellValue.Split(',').ToList();
-                        break;
+                    bomLine.Quantity = (int)cell.NumericCellValue;
+                } 
+                else if (key == nameof(BomLine.Designators)) 
+                {
+                    bomLine.Designators = cell.StringCellValue.Split(", ").ToList();
+                } 
+                else 
+                {
+                    var property = typeof(BomLine).GetProperty(key);
+                    if (property != null && property.PropertyType == typeof(string)) 
+                    {
+                        property.SetValue(bomLine, cell.StringCellValue);
+                    }
                 }
             }
             bom.Add(bomLine);
@@ -78,13 +71,24 @@ public class NpoiExcel : IExcel
         {
             var row = sheet.CreateRow(sheet.LastRowNum + 1);
 
-            row.CreateCell(0).SetCellValue(bomLine.InternalPartId);
-            row.CreateCell(1).SetCellValue(bomLine.ManufacturerPartId);
-            row.CreateCell(2).SetCellValue(bomLine.ManufacturerName);
-            row.CreateCell(3).SetCellValue(bomLine.PartDescription);
-            row.CreateCell(4).SetCellValue(bomLine.Quantity);
-            row.CreateCell(5).SetCellValue(bomLine.Value);
-            row.CreateCell(6).SetCellValue(string.Join(",", bomLine.Positions));
+            var properties = bomLine.GetType().GetProperties();
+            var iterationCounter = 0;
+            foreach (var property in properties)
+            {
+                var cell = row.CreateCell(iterationCounter);
+                var value = properties[iterationCounter].GetValue(bomLine, null);
+
+                if (value is ICollection positions)
+                {
+                    cell.SetCellValue(string.Join(", ", positions));
+                }
+                else
+                {
+                    cell.SetCellValue(Convert.ToString(value));
+                }
+
+                iterationCounter++;
+            }
         }
 
         workbook.Write(file);

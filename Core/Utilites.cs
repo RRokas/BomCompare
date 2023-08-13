@@ -9,19 +9,28 @@ public class Utilites
 
         for (var i = 0; i < linesToGenerate; i++)
         {
-            var bomLine = new BomLine
+            var bomLine = new BomLine();
+
+            var properties = typeof(BomLine).GetProperties();
+            foreach (var property in properties)
             {
-                InternalPartId = GetRandomString(random, 5),
-                ManufacturerPartId = GetRandomString(random, 10),
-                ManufacturerName = GetRandomString(random, 10),
-                PartDescription = GetRandomString(random, 30),
-                Quantity = random.Next(1000000, 9999999),
-                Value = GetRandomString(random, 10),
-                Positions = new List<string> {
-                    GetRandomString(random, 5),
-                    GetRandomString(random, 5),
-                    GetRandomString(random, 5)}
-            };
+                if (property.PropertyType == typeof(int))
+                {
+                    property.SetValue(bomLine, random.Next());
+                }
+                else if (property.PropertyType == typeof(List<string>))
+                {
+                    property.SetValue(bomLine, new List<string> {
+                        GetRandomString(random, 5),
+                        GetRandomString(random, 5),
+                        GetRandomString(random, 5)});
+                }
+                else
+                {
+                    property.SetValue(bomLine, GetRandomString(random, 10));
+                }
+            }
+
             bom.Add(bomLine);
         }
 

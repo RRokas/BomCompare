@@ -1,9 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Data.Common;
+using Core;
 using Sylvan.Data;
 using Sylvan.Data.Excel;
-
-namespace Core.SylvanImplementation;
 
 public class SylvanExcel : IExcel
 {
@@ -11,44 +10,67 @@ public class SylvanExcel : IExcel
     {
         using var edr = ExcelDataReader.Create(path);
         var bom = new List<BomLine>();
-        var columnIndexes = GetColumIndexes(edr.GetColumnSchema());
+        var columnIndexes = GetColumnIndexes(edr.GetColumnSchema());
+
         while (edr.Read())
         {
-            bom.Add(new BomLine
+            var bomLine = new BomLine();
+
+            foreach (var columnIndex in columnIndexes)
             {
-                InternalPartId = edr.GetString(columnIndexes[nameof(BomLine.InternalPartId)]),
-                ManufacturerPartId = edr.GetString(columnIndexes[nameof(BomLine.ManufacturerPartId)]),
-                ManufacturerName = edr.GetString(columnIndexes[nameof(BomLine.ManufacturerName)]),
-                PartDescription = edr.GetString(columnIndexes[nameof(BomLine.PartDescription)]),
-                Quantity = edr.GetDouble(columnIndexes[nameof(BomLine.Quantity)]),
-                Value = edr.GetString(columnIndexes[nameof(BomLine.Value)]),
-                Positions = edr.GetString(columnIndexes[nameof(BomLine.Positions)]).Split(',').ToList()
-            });
+                var key = columnIndex.Key;
+                var value = columnIndex.Value;
+                var property = typeof(BomLine).GetProperty(key);
+
+                if (key == nameof(BomLine.Quantity)) 
+                {
+                    bomLine.Quantity = (int)edr.GetDouble(value);
+                } 
+                else if (key == nameof(BomLine.Designators)) 
+                {
+                    bomLine.Designators = edr.GetString(value).Split(", ").ToList();
+                } 
+                else 
+                {
+                    if (property != null && property.PropertyType == typeof(string)) 
+                    {
+                        property.SetValue(bomLine, edr.GetString(value));
+                    }
+                }
+            }
+            bom.Add(bomLine);
         }
+
         return bom;
     }
 
     public void WriteBom(string path, List<BomLine> bom)
     {
         using var excelDataWriter = ExcelDataWriter.Create(path);
-        
-        var builder = new ObjectDataReader.Builder<BomLine>()
-            .AddColumn(ExcelColumns.InternalPartId, x => x.InternalPartId)
-            .AddColumn(ExcelColumns.ManufacturerPartId, x => x.ManufacturerPartId)
-            .AddColumn(ExcelColumns.ManufacturerName, x => x.ManufacturerName)
-            .AddColumn(ExcelColumns.PartDescription, x => x.PartDescription)
-            .AddColumn(ExcelColumns.Quantity, x => x.Quantity)
-            .AddColumn(ExcelColumns.Value, x => x.Value)
-            .AddColumn(ExcelColumns.Positions, x => string.Join(",", x.Positions));
+
+        var builder = new ObjectDataReader.Builder<BomLine>();
+
+        var properties = typeof(BomLine).GetProperties();
+        foreach (var property in properties)
+        {
+            if (property.PropertyType == typeof(List<string>))
+            {
+                builder.AddColumn(property.Name, x => string.Join(", ", (List<string>) property.GetValue(x)));
+            }
+            else
+            {
+                builder.AddColumn(property.Name, x => property.GetValue(x)?.ToString());
+            }
+        }
 
         excelDataWriter.Write(builder.Build(bom));
     }
 
-    private static Dictionary<string, int> GetColumIndexes(ReadOnlyCollection<DbColumn> headers)
+    private static Dictionary<string, int> GetColumnIndexes(ReadOnlyCollection<DbColumn> headers)
     {
         var columnIndexes = new Dictionary<string, int>();
 
-        foreach (var columnDefinition in ExcelColumns.All)  
+        foreach (var columnDefinition in Core.ExcelColumns.All)
         {
             var header = headers.FirstOrDefault(h => h.ColumnName == columnDefinition.HeaderName);
             if (header != null)
@@ -56,7 +78,7 @@ public class SylvanExcel : IExcel
                 columnIndexes.Add(columnDefinition.FieldName, header.ColumnOrdinal.Value);
             }
         }
-        
+
         return columnIndexes;
     }
 }

@@ -2,11 +2,14 @@
 
 public class BomLine
 {
-    public string InternalPartId { get; set; }
-    public string ManufacturerPartId { get; set; }
-    public string ManufacturerName { get; set; }
-    public string PartDescription { get; set; }
-    public double Quantity { get; set; }
+    public int Quantity { get; set; }
+    public string PartNumber { get; set; }
+    public List<string> Designators { get; set; }
     public string Value { get; set; }
-    public List<string> Positions { get; set; }
+    public string SMD { get; set; }
+    public string Description { get; set; }
+    public string Manufacturer { get; set; }
+    public string ManufacturerPartNumber { get; set; }
+    public string Distributor { get; set; }
+    public string DistributorPartNumber { get; set; }
 }
