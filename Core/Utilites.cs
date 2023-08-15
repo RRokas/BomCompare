@@ -37,7 +37,7 @@ public class Utilites
         return bom;
     }
     
-    private static string GetRandomString(Random random, int length)
+    public static string GetRandomString(Random random, int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         return new string(Enumerable.Repeat(chars, length)

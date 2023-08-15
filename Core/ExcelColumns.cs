@@ -8,7 +8,7 @@ public static class ExcelColumns
     public const string PartNumber = "Part Number";
     public const string Designators = "Designator";
     public const string Value = "Value";
-    public const string SMD = "SMD";
+    public const string Smd = "SMD";
     public const string Description = "Description";
     public const string Manufacturer = "Manufacturer";
     public const string ManufacturerPartNumber = "Manufacturer Part Number";

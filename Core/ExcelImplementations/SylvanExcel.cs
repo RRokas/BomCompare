@@ -28,7 +28,8 @@ public class SylvanExcel : IExcel
                 } 
                 else if (key == nameof(BomLine.Designators)) 
                 {
-                    bomLine.Designators = edr.GetString(value).Split(", ").ToList();
+                    bomLine.Designators = edr.GetString(value).Split(", ").ToList()
+                        .Select(x => new Designator { Name = x, ComparisonStatus = ComparisonStatus.NotCompared }).ToList();;
                 } 
                 else 
                 {

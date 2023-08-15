@@ -8,9 +8,12 @@
 
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.13.6" />
+      <PackageReference Include="ClosedXML" Version="0.102.0" />
       <PackageReference Include="NPOI" Version="2.6.1" />
       <PackageReference Include="Sylvan.Data" Version="0.2.12" />
       <PackageReference Include="Sylvan.Data.Excel" Version="0.4.13" />
+
+
     </ItemGroup>
 
 

@@ -32,7 +32,7 @@ public class NpoiExcel : IExcel
                 } 
                 else if (key == nameof(BomLine.Designators)) 
                 {
-                    bomLine.Designators = cell.StringCellValue.Split(", ").ToList();
+                    bomLine.Designators = cell.StringCellValue.Split(", ").ToList().Select(x => new Designator { Name = x, ComparisonStatus = ComparisonStatus.NotCompared }).ToList();;
                 } 
                 else 
                 {
