@@ -18,21 +18,11 @@ public class BomComparisonService : IBomComparisonService
             var targetBomLine = target.FirstOrDefault(x => x.PartNumber == sourceBomLine.PartNumber);
             if(targetBomLine is null)
             {
-                comparedBom.Add(
-                    new BomLine
-                    {
-                        Quantity = sourceBomLine.Quantity,
-                        PartNumber = sourceBomLine.PartNumber,
-                        Designators = sourceBomLine.Designators.Select(x => new Designator(x.Name,ComparisonStatus.Removed)).ToList(),
-                        Value = sourceBomLine.Value,
-                        SMD = sourceBomLine.SMD,
-                        Description = sourceBomLine.Description,
-                        Manufacturer = sourceBomLine.Manufacturer,
-                        ManufacturerPartNumber = sourceBomLine.ManufacturerPartNumber,
-                        Distributor = sourceBomLine.Distributor,
-                        DistributorPartNumber = sourceBomLine.DistributorPartNumber,
-                    }
-                );
+                var comparedBomLine = sourceBomLine.CreateCopyWithoutDesignators();
+                foreach (var designator in sourceBomLine.Designators)
+                    comparedBomLine.Designators.Add(new Designator(designator.Name, ComparisonStatus.Removed));
+            
+                comparedBom.Add(comparedBomLine);
             }
             else
             {
@@ -42,6 +32,19 @@ public class BomComparisonService : IBomComparisonService
             }
             
         }
+        
+        var newPartNumbersInTarget = target
+            .Select(t => t.PartNumber)
+            .Except(source.Select(s => s.PartNumber))
+            .ToList();
+        foreach (var bomLine in target.Where(x => newPartNumbersInTarget.Contains(x.PartNumber)))
+        {
+            var comparedBomLine = bomLine.CreateCopyWithoutDesignators();
+            foreach (var designator in bomLine.Designators)
+                comparedBomLine.Designators.Add(new Designator(designator.Name, ComparisonStatus.Added));
+            
+            comparedBom.Add(comparedBomLine);
+        }
 
         return comparedBom;
     }
@@ -50,20 +53,8 @@ public class BomComparisonService : IBomComparisonService
     {
         if (source.PartNumber != target.PartNumber)
             throw new ArgumentException("Part numbers must match to compare BOM lines");
-        
-        var comparedBomLine = new BomLine
-        {
-            Quantity = source.Quantity,
-            PartNumber = source.PartNumber,
-            Designators = new List<Designator>(),
-            Value = source.Value,
-            SMD = source.SMD,
-            Description = source.Description,
-            Manufacturer = source.Manufacturer,
-            ManufacturerPartNumber = source.ManufacturerPartNumber,
-            Distributor = source.Distributor,
-            DistributorPartNumber = source.DistributorPartNumber
-        };
+
+        var comparedBomLine = source.CreateCopyWithoutDesignators();
 
         foreach (var sourceDesignator in source.Designators)
         {
@@ -84,4 +75,6 @@ public class BomComparisonService : IBomComparisonService
         
         return comparedBomLine;
     }
+    
+    
 }
