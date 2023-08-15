@@ -1,3 +1,5 @@
+using Core.Entitites;
+
 namespace Core;
 
 public interface IBomComparisonService
@@ -21,7 +23,7 @@ public class BomComparisonService : IBomComparisonService
                     {
                         Quantity = sourceBomLine.Quantity,
                         PartNumber = sourceBomLine.PartNumber,
-                        Designators = sourceBomLine.Designators.Select(x => new Designator { Name = x.Name, ComparisonStatus = ComparisonStatus.Removed }).ToList(),
+                        Designators = sourceBomLine.Designators.Select(x => new Designator(x.Name,ComparisonStatus.Removed)).ToList(),
                         Value = sourceBomLine.Value,
                         SMD = sourceBomLine.SMD,
                         Description = sourceBomLine.Description,
@@ -49,14 +51,26 @@ public class BomComparisonService : IBomComparisonService
         if (source.PartNumber != target.PartNumber)
             throw new ArgumentException("Part numbers must match to compare BOM lines");
         
-        var comparedBomLine = new BomLine();
+        var comparedBomLine = new BomLine
+        {
+            Quantity = source.Quantity,
+            PartNumber = source.PartNumber,
+            Designators = new List<Designator>(),
+            Value = source.Value,
+            SMD = source.SMD,
+            Description = source.Description,
+            Manufacturer = source.Manufacturer,
+            ManufacturerPartNumber = source.ManufacturerPartNumber,
+            Distributor = source.Distributor,
+            DistributorPartNumber = source.DistributorPartNumber
+        };
 
         foreach (var sourceDesignator in source.Designators)
         {
             var targetDesignator = target.Designators.FirstOrDefault(x => x.Name == sourceDesignator.Name);
             comparedBomLine.Designators.Add(targetDesignator is null
-                ? new Designator { Name = sourceDesignator.Name, ComparisonStatus = ComparisonStatus.Removed }
-                : new Designator { Name = sourceDesignator.Name, ComparisonStatus = ComparisonStatus.Unchanged });
+                ? new Designator(sourceDesignator.Name, ComparisonStatus.Removed)
+                : new Designator(sourceDesignator.Name, ComparisonStatus.Unchanged));
         }
         
         foreach (var targetDesignator in target.Designators)
@@ -64,7 +78,7 @@ public class BomComparisonService : IBomComparisonService
             var sourceDesignator = source.Designators.FirstOrDefault(x => x.Name == targetDesignator.Name);
             if (sourceDesignator is null)
             {
-                comparedBomLine.Designators.Add(new Designator { Name = targetDesignator.Name, ComparisonStatus = ComparisonStatus.Added });
+                comparedBomLine.Designators.Add(new Designator(targetDesignator.Name, ComparisonStatus.Added));
             }
         }
         

@@ -1,3 +1,5 @@
+using Core.Entitites;
+
 namespace Core.Tests;
 
 public class BomLineComparisonTests
