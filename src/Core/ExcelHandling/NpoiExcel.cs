@@ -2,6 +2,8 @@ using System.Collections;
 using System.Reflection;
 using Core.Attributes;
 using Core.Entitites;
+using NPOI.HSSF.UserModel;
+using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
@@ -104,7 +106,7 @@ public class NpoiExcel : IExcel
                 break;
 
             case List<Designator> designators:
-                cell.SetCellValue(string.Join(", ", designators.Select(x => x.Name)));
+                WriteDesignatorCellWithFormatting(cell, designators);
                 break;
             
             case int intValue:
@@ -115,6 +117,33 @@ public class NpoiExcel : IExcel
                 cell.SetCellValue(Convert.ToString(cellValue));
                 break;
         }
+    }
+
+    private void WriteDesignatorCellWithFormatting(ICell cell, List<Designator> designators)
+    {
+        var richTextString = new XSSFRichTextString();
+        for (var index = 0; index < designators.Count; index++)
+        {
+            var designator = designators[index];
+            var font = new XSSFFont();
+
+            font.Color = designator.DesignatorComparisonStatus switch
+            {
+                DesignatorComparisonStatus.Added => HSSFColor.Green.Index,
+                DesignatorComparisonStatus.Removed => HSSFColor.Red.Index,
+                _ => font.Color
+            };
+            
+            if(designator.DesignatorComparisonStatus == DesignatorComparisonStatus.Removed)
+                font.IsStrikeout = true;
+            
+            richTextString.Append(designator.Name, font);
+            
+            if(designators.Count - 1 != index)
+                richTextString.Append(", ");
+        }
+
+        cell.SetCellValue(richTextString);
     }
     
     private void CreateBomLine(ISheet sheet, BomLine bomLine, PropertyInfo[] properties)
