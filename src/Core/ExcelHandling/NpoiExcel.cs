@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using Core.Attributes;
 using Core.Entitites;
@@ -9,7 +10,7 @@ using NPOI.XSSF.UserModel;
 
 namespace Core;
 
-public class NpoiExcel : IExcel
+public class NpoiExcel : IExcelReader, IExcelWriter
 {
     public List<BomLine> ReadBom(string path)
     {
@@ -19,12 +20,13 @@ public class NpoiExcel : IExcel
         var sheet = workbook.GetSheetAt(0);
         var headers = sheet.GetRow(0).Cells.Select(cell => cell.StringCellValue).ToList();
         var rowCount = sheet.LastRowNum;
-
+        var properties = typeof(BomLine).GetProperties();
+        
         for (var i = 1; i <= rowCount; i++)
         {
             var row = sheet.GetRow(i);
             var bomLine = new BomLine();
-            var properties = typeof(BomLine).GetProperties();
+            
 
             foreach (var property in properties)
             {
@@ -58,7 +60,7 @@ public class NpoiExcel : IExcel
             }
             bom.Add(bomLine);
         }
-
+        
         return bom;
     }
 

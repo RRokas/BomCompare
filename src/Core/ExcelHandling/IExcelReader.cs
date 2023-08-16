@@ -2,8 +2,7 @@ using Core.Entitites;
 
 namespace Core;
 
-public interface IExcel
+public interface IExcelReader
 {
     public List<BomLine> ReadBom(string path);
-    public void WriteBom(string path, List<ComparedBomLine> bom);
 }
