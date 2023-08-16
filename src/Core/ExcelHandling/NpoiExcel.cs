@@ -46,7 +46,7 @@ public class NpoiExcel : IExcel
                         {
                             var desigs = cell.StringCellValue
                                 .Split(", ")
-                                .Select(x => new Designator(x, ComparisonStatus.NotCompared))
+                                .Select(x => new Designator(x, DesignatorComparisonStatus.NotCompared))
                                 .ToList();
 
                             property.SetValue(bomLine, desigs);
@@ -60,35 +60,28 @@ public class NpoiExcel : IExcel
         return bom;
     }
 
-    public void WriteBom(string path, List<BomLine> bom, bool includeComparisonStatus)
+    public void WriteBom(string path, List<ComparedBomLine> bom)
     {
         using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
         var workbook = new XSSFWorkbook();
         var sheet = workbook.CreateSheet("BOM_comparison");
 
         // Create header rows from ExcelColumnName Attributes
-        var properties = typeof(BomLine).GetProperties();
-        CreateHeader(sheet, properties, includeComparisonStatus);
+        var properties = typeof(ComparedBomLine).GetProperties();
+        CreateHeader(sheet, properties);
         
         foreach (var bomLine in bom)
         {
-            CreateBomLine(sheet, bomLine, properties, includeComparisonStatus);
+            CreateBomLine(sheet, bomLine, properties);
         }
 
         workbook.Write(file);
     }
 
-    private void CreateHeader(ISheet sheet, PropertyInfo[] properties, bool includeComparisonStatus)
+    private void CreateHeader(ISheet sheet, PropertyInfo[] properties)
     {
         var headerRow = sheet.CreateRow(0);
-        int iterationStartIndex = 0;
-
-        if (includeComparisonStatus)
-        {
-            headerRow.CreateCell(0).SetCellValue("Comparison Status");
-            iterationStartIndex = 1; // start iteration from 1 if 'Comparison Status' is included
-        }
-
+        
         for (int i = 0; i < properties.Length; i++)
         {
             var prop = properties[i];
@@ -96,7 +89,7 @@ public class NpoiExcel : IExcel
 
             if (attr != null)
             {
-                headerRow.CreateCell(i + iterationStartIndex).SetCellValue(attr.ColumnName);
+                headerRow.CreateCell(i).SetCellValue(attr.ColumnName);
             }
         }
     }
@@ -110,31 +103,24 @@ public class NpoiExcel : IExcel
                 cell.SetCellValue(string.Join(", ", strList));
                 break;
 
-            case ICollection positions:
-                cell.SetCellValue(string.Join(", ", positions));
+            case List<Designator> designators:
+                cell.SetCellValue(string.Join(", ", designators.Select(x => x.Name)));
                 break;
-
+            
+            case int intValue:
+                cell.SetCellValue(intValue);
+                break;
+            
             default:
                 cell.SetCellValue(Convert.ToString(cellValue));
                 break;
         }
     }
     
-    private void CreateBomLine(ISheet sheet, BomLine bomLine, PropertyInfo[] properties, bool includeComparisonStatus)
+    private void CreateBomLine(ISheet sheet, BomLine bomLine, PropertyInfo[] properties)
     {
         var row = sheet.CreateRow(sheet.LastRowNum + 1);
-
-        if (includeComparisonStatus)
-        {
-            var comparisonResults = bomLine.Designators
-                .Select(x => x.ComparisonStatus)
-                .Distinct()
-                .Select(x => x.ToString())
-                .ToList();
-            CreateCellAndSetValue(row, 0, comparisonResults);
-        }
-
-        int startColumnIndex = includeComparisonStatus ? 1 : 0;
+        
         for (int i = 0; i < properties.Length; i++)
         {
             var property = properties[i];
@@ -143,7 +129,7 @@ public class NpoiExcel : IExcel
             if (!attr.Any()) continue;
 
             var value = property.GetValue(bomLine, null);
-            CreateCellAndSetValue(row, i + startColumnIndex, value);
+            CreateCellAndSetValue(row, i, value);
         }
     }
 }

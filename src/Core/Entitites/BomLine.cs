@@ -26,21 +26,4 @@ public class BomLine
     public string Distributor { get; set; }
     [ExcelColumnName("Distributor Part Number")]
     public string DistributorPartNumber { get; set; }
-    
-    public BomLine CreateCopyWithoutDesignators()
-    {
-        return new BomLine
-        {
-            Quantity = Quantity,
-            PartNumber = PartNumber,
-            Designators = new List<Designator>(),
-            Value = Value,
-            SMD = SMD,
-            Description = Description,
-            Manufacturer = Manufacturer,
-            ManufacturerPartNumber = ManufacturerPartNumber,
-            Distributor = Distributor,
-            DistributorPartNumber = DistributorPartNumber,
-        };
-    }
 }

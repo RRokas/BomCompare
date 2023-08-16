@@ -35,7 +35,7 @@ public class BomLineComparisonTests
         
         var result = comparer.CompareBomLine(source, target);
         Assert.Equal(4, result.Designators.Count);
-        Assert.Equal(ComparisonStatus.Added, result.Designators[3].ComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Added, result.Designators[3].DesignatorComparisonStatus);
     }
     
     [Fact]
@@ -67,7 +67,7 @@ public class BomLineComparisonTests
         
         var result = comparer.CompareBomLine(source, target);
         Assert.Equal(3, result.Designators.Count);
-        Assert.Equal(ComparisonStatus.Removed, result.Designators[2].ComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Removed, result.Designators[2].DesignatorComparisonStatus);
     }
     
     [Fact]
@@ -101,7 +101,7 @@ public class BomLineComparisonTests
         var result = comparer.CompareBomLine(source, target);
         Assert.Equal(3, result.Designators.Count);
         Assert.All(result.Designators,
-            x => Assert.Equal(ComparisonStatus.Unchanged, x.ComparisonStatus));
+            x => Assert.Equal(DesignatorComparisonStatus.Unchanged, x.DesignatorComparisonStatus));
     }
     
     [Fact]
@@ -134,9 +134,9 @@ public class BomLineComparisonTests
         
         var result = comparer.CompareBomLine(source, target);
         Assert.Equal(4, result.Designators.Count);
-        Assert.Equal(ComparisonStatus.Unchanged, result.Designators[0].ComparisonStatus);
-        Assert.Equal(ComparisonStatus.Removed, result.Designators[1].ComparisonStatus);
-        Assert.Equal(ComparisonStatus.Unchanged, result.Designators[2].ComparisonStatus);
-        Assert.Equal(ComparisonStatus.Added, result.Designators[3].ComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Unchanged, result.Designators[0].DesignatorComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Removed, result.Designators[1].DesignatorComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Unchanged, result.Designators[2].DesignatorComparisonStatus);
+        Assert.Equal(DesignatorComparisonStatus.Added, result.Designators[3].DesignatorComparisonStatus);
     }
 }
