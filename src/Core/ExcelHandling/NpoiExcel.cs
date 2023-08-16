@@ -71,6 +71,7 @@ public class NpoiExcel : IExcel
         // Create header rows from ExcelColumnName Attributes
         var properties = typeof(ComparedBomLine).GetProperties();
         CreateHeader(sheet, properties);
+        sheet.SetAutoFilter(new NPOI.SS.Util.CellRangeAddress(0, 0, 0, properties.Length - 1));
         
         foreach (var bomLine in bom)
         {
