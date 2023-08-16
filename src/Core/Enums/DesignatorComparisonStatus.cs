@@ -1,6 +1,6 @@
 namespace Core;
 
-public enum ComparisonStatus
+public enum DesignatorComparisonStatus
 {
     NotCompared,
     Unchanged,

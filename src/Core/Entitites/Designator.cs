@@ -3,17 +3,17 @@ namespace Core.Entitites;
 public class Designator
 {
     public string Name { get; set; }
-    public ComparisonStatus ComparisonStatus { get; set; }
+    public DesignatorComparisonStatus DesignatorComparisonStatus { get; set; }
 
     public Designator()
     {
         Name = string.Empty;
-        ComparisonStatus = ComparisonStatus.NotCompared;
+        DesignatorComparisonStatus = DesignatorComparisonStatus.NotCompared;
     }
     
-    public Designator(string name, ComparisonStatus comparisonStatus)
+    public Designator(string name, DesignatorComparisonStatus designatorComparisonStatus)
     {
         Name = name;
-        ComparisonStatus = comparisonStatus;
+        DesignatorComparisonStatus = designatorComparisonStatus;
     }
 }
