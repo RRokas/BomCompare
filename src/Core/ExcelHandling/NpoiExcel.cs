@@ -87,6 +87,8 @@ public class NpoiExcel : IExcelReader, IExcelWriter
     {
         var headerRow = sheet.CreateRow(0);
         
+        var headerCellStyle = CreateHeaderCellStyle(sheet);
+        
         for (int i = 0; i < properties.Length; i++)
         {
             var prop = properties[i];
@@ -94,9 +96,23 @@ public class NpoiExcel : IExcelReader, IExcelWriter
 
             if (attr != null)
             {
-                headerRow.CreateCell(i).SetCellValue(attr.ColumnName);
+                var cell = headerRow.CreateCell(i);
+                cell.SetCellValue(attr.ColumnName);
+                cell.CellStyle = headerCellStyle;
             }
         }
+    }
+
+    private ICellStyle CreateHeaderCellStyle(ISheet sheet)
+    {
+        var cellStyle = sheet.Workbook.CreateCellStyle();
+        var font = sheet.Workbook.CreateFont();
+        
+        font.IsBold = true;
+        font.FontHeightInPoints = 10;
+        cellStyle.SetFont(font);
+        
+        return cellStyle;
     }
     
     private void CreateCellAndSetValue(IRow row, int cellIndex, object cellValue)
