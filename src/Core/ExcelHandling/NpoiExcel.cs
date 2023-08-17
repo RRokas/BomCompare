@@ -128,17 +128,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         for (var index = 0; index < designators.Count; index++)
         {
             var designator = designators[index];
-            var font = new XSSFFont();
-
-            font.Color = designator.DesignatorComparisonStatus switch
-            {
-                DesignatorComparisonStatus.Added => HSSFColor.Green.Index,
-                DesignatorComparisonStatus.Removed => HSSFColor.Red.Index,
-                _ => font.Color
-            };
-            
-            if(designator.DesignatorComparisonStatus == DesignatorComparisonStatus.Removed)
-                font.IsStrikeout = true;
+            var font = GetFontStyleForDesignator(designator);
             
             richTextString.Append(designator.Name, font);
             
@@ -147,6 +137,23 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         }
 
         cell.SetCellValue(richTextString);
+    }
+
+    private XSSFFont GetFontStyleForDesignator(Designator designator)
+    {
+        var font = new XSSFFont();
+        
+        font.Color = designator.DesignatorComparisonStatus switch
+        {
+            DesignatorComparisonStatus.Added => HSSFColor.Green.Index,
+            DesignatorComparisonStatus.Removed => HSSFColor.Red.Index,
+            _ => font.Color
+        };
+        
+        if(designator.DesignatorComparisonStatus == DesignatorComparisonStatus.Removed)
+            font.IsStrikeout = true;
+        
+        return font;
     }
     
     private void CreateBomLine(ISheet sheet, BomLine bomLine, PropertyInfo[] properties)
