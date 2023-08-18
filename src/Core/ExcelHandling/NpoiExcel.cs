@@ -14,9 +14,14 @@ public class NpoiExcel : IExcelReader, IExcelWriter
 {
     public List<BomLine> ReadBom(string path)
     {
-        var bom = new List<BomLine>();
         using var file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        var workbook = new XSSFWorkbook(file);
+        return ReadBom(file);
+    }
+
+    public List<BomLine> ReadBom(Stream stream)
+    {
+        var bom = new List<BomLine>();
+        var workbook = new XSSFWorkbook(stream);
         var sheet = workbook.GetSheetAt(0);
         var headers = sheet.GetRow(0).Cells.Select(cell => cell.StringCellValue).ToList();
         var rowCount = sheet.LastRowNum;

@@ -1,3 +1,4 @@
+using Core;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
@@ -10,6 +11,9 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped<IExcelReader, NpoiExcel>();
+builder.Services.AddScoped<IExcelWriter, NpoiExcel>();
+builder.Services.AddScoped<IBomComparisonService, BomComparisonService>();
 builder.Services.AddMudServices();
 
 var app = builder.Build();

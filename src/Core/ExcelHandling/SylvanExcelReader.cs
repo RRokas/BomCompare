@@ -5,7 +5,7 @@ using Sylvan.Data.Excel;
 
 namespace Core;
 
-public class SylvanExcelReader : IExcelReader
+public class SylvanExcelReader
 {
     public List<BomLine> ReadBom(string path)
     {
@@ -56,7 +56,12 @@ public class SylvanExcelReader : IExcelReader
         
         return bom;
     }
-    
+
+    public List<BomLine> ReadBom(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
+
     private Dictionary<string, int> ReadHeaderIndexes(ExcelDataReader edr)
     {
         var headerIndexes = new Dictionary<string, int>();

@@ -1,23 +1,18 @@
 @page "/BomComparison"
 @using Core.Entitites
 @using WebUI.CustomComponents
+@using Core
 
 <h1>Bom Comparison</h1>
 <MudGrid>
+    <MudItem xs="12" sm="6">
+        <DragAndDropUpload HintText="Source BOM (.xls | .xlsx)" OnFileSelected="ReadSourceBomFile"/>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <DragAndDropUpload HintText="Target BOM (.xls | .xlsx)" OnFileSelected="ReadTargetBomFile"/>
+    </MudItem>
     
-    <!-- First Row with two columns -->
-    <MudItem xs="12" sm="6">
-        <!-- Drag and drop area -->
-        <DragAndDropUpload HintText="Source BOM (.xls | .xlsx)"/>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <!-- Drag and drop area -->
-        <DragAndDropUpload HintText="Target BOM (.xls | .xlsx)"/>
-    </MudItem>
-
-    <!-- Second Row -->
     <MudItem xs="12">
-        <!-- MudBlazor table -->
         <MudTable T="ComparedBomLine">
             TODO: Table Content
         </MudTable>
@@ -25,41 +20,44 @@
 </MudGrid>
 
 @inject ISnackbar Snackbar
+@inject IExcelReader ExcelReader
+@inject IExcelWriter ExcelWriter
+@inject IBomComparisonService BomComparisonService
+
 @code {
-    private static string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full z-10";
-    private string DragClass = DefaultDragClass;
-    private List<string> fileNames = new List<string>();
+    private List<BomLine>? _sourceBomLines;
+    private List<BomLine>? _targetBomLines;
+    private List<ComparedBomLine>? _comparedBomLines;
+    
+    private async Task<Stream> GetMemoryStreamFromIBrowserFile(IBrowserFile file)
+    {
+        var memoryStream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+        return memoryStream;
+    }    
 
-    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    private async Task ReadSourceBomFile(IBrowserFile file)
     {
-        ClearDragClass();
-        var files = e.GetMultipleFiles();
-        foreach (var file in files)
-        {
-            fileNames.Add(file.Name);
-        }
+        var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
+        _sourceBomLines = ExcelReader.ReadBom(memoryStream);
+        Snackbar.Add($"Successfully read {_sourceBomLines.Count} lines from source BOM file", Severity.Success);
+        if (_sourceBomLines is not null && _targetBomLines is not null)
+            CompareBoms();
     }
-
-    private async Task Clear()
+    
+    private async Task ReadTargetBomFile(IBrowserFile file)
     {
-        fileNames.Clear();
-        ClearDragClass();
-        await Task.Delay(100);
+        var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
+        _targetBomLines = ExcelReader.ReadBom(memoryStream);
+        Snackbar.Add($"Successfully read {_targetBomLines.Count} lines from target BOM file", Severity.Success);
+        if (_sourceBomLines is not null && _targetBomLines is not null)
+            CompareBoms();
     }
-    private void Upload()
+    
+    private void CompareBoms()
     {
-    //Upload the files here
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add("TODO: Upload your files!", Severity.Normal);
-    }
-
-    private void SetDragClass()
-    {
-        DragClass = $"{DefaultDragClass} mud-border-primary";
-    }
-
-    private void ClearDragClass()
-    {
-        DragClass = DefaultDragClass;
+        _comparedBomLines = BomComparisonService.CompareBom(_sourceBomLines, _targetBomLines);
+        Snackbar.Add($"Successfully compared {_sourceBomLines.Count} lines from source BOM file with {_targetBomLines.Count} lines from target BOM file", Severity.Success);
     }
 }
