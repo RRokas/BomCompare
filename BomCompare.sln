@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests", "tests\Core.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "src\CLI\CLI.csproj", "{45774788-3D43-4013-A6E9-9185F35B87D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebUI", "src\WebUI\WebUI.csproj", "{24605D28-38BD-4FF2-BDCB-645F8D5FA310}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,16 @@ Global
 		{45774788-3D43-4013-A6E9-9185F35B87D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45774788-3D43-4013-A6E9-9185F35B87D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45774788-3D43-4013-A6E9-9185F35B87D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FA5C4D0-56F5-4260-912F-02DADDABC3A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FA5C4D0-56F5-4260-912F-02DADDABC3A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FA5C4D0-56F5-4260-912F-02DADDABC3A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FA5C4D0-56F5-4260-912F-02DADDABC3A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24605D28-38BD-4FF2-BDCB-645F8D5FA310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24605D28-38BD-4FF2-BDCB-645F8D5FA310}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24605D28-38BD-4FF2-BDCB-645F8D5FA310}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24605D28-38BD-4FF2-BDCB-645F8D5FA310}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{24605D28-38BD-4FF2-BDCB-645F8D5FA310} = {E0A2DC47-7667-4631-B8A8-38EBA6056FED}
 	EndGlobalSection
 EndGlobal

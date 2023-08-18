@@ -1,0 +1,62 @@
+@namespace WebUI.CustomComponents
+
+@inject ISnackbar Snackbar
+
+<MudStack Style="width: 100%">
+    <MudFileUpload T="IBrowserFile" OnFilesChanged="OnInputFileChanged" AppendMultipleFiles Hidden="false" Class="flex-1" InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" InputStyle="opacity:0"
+                   @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass">
+        <ButtonTemplate>
+            <MudPaper Height="300px" Outlined="true" Class="@DragClass" Style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <MudText Typo="Typo.h6">@HintText</MudText>
+                <div style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                    <MudIcon Size="Size.Large" Icon="@Icons.Material.TwoTone.UploadFile" Style="opacity: 0.5;"/>
+                </div>
+                @if (selectedFileName != String.Empty)
+                {
+                    <MudChip Color="Color.Dark" Text="@selectedFileName"/>
+                }
+            </MudPaper>
+        </ButtonTemplate>
+    </MudFileUpload>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string HintText { get; set; } = "Select a file";
+    private static string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full z-10";
+    private string DragClass = DefaultDragClass;
+    private string selectedFileName = String.Empty;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var file = e.File;
+        selectedFileName = file.Name;
+    }
+
+    private async Task Clear()
+    {
+        selectedFileName = String.Empty;
+        ClearDragClass();
+        await Task.Delay(100);
+    }
+
+    private void Upload()
+    {
+    //Upload the files here
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add("TODO: Upload your files!", Severity.Normal);
+    }
+
+    private void SetDragClass()
+    {
+        DragClass = $"{DefaultDragClass} mud-border-primary";
+    }
+
+    private void ClearDragClass()
+    {
+        DragClass = DefaultDragClass;
+    }
+
+}
