@@ -1,0 +1,54 @@
+@using Core.Entitites
+@using Core
+@using System.Text
+
+<MudTable T="ComparedBomLine" Items="ComparedBomLines">
+    <HeaderContent>
+        <MudTh>Quantity</MudTh>
+        <MudTh>Part Number</MudTh>
+        <MudTh>Designators</MudTh>
+        <MudTh>Comparison Status</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
+        <MudTd DataLabel="Part Number">@context.PartNumber</MudTd>
+        <MudTd DataLabel="Designators">
+            @foreach (var designator in context.Designators)
+            {
+                var styles = BuildStyleAttributes(designator.DesignatorComparisonStatus);
+                <span style="@styles">@designator.Name</span>
+                if (designator != context.Designators.Last())
+                {
+                    @: ,
+                }
+            }
+        </MudTd>
+        <MudTd DataLabel="Comparison Status">@context.ComparisonStatus</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+
+    [Parameter]
+    public List<ComparedBomLine> ComparedBomLines { get; set; }
+
+    public string BuildStyleAttributes(DesignatorComparisonStatus status)
+    {
+        string color = String.Empty;
+        
+        if (status == DesignatorComparisonStatus.Added)
+            color = "green";
+        else if (status == DesignatorComparisonStatus.Removed)
+            color = "red";
+        
+        var styleStringBuilder = new StringBuilder();
+        if(!string.IsNullOrEmpty(color))
+            styleStringBuilder.Append($"color:{color}; ");
+        
+        if(status == DesignatorComparisonStatus.Removed)
+            styleStringBuilder.Append("text-decoration: line-through; ");
+        
+        return styleStringBuilder.ToString();
+    }
+
+}
