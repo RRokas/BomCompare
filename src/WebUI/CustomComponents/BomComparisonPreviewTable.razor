@@ -2,11 +2,12 @@
 @using Core
 @using System.Text
 
-<MudTable T="ComparedBomLine" Items="ComparedBomLines">
+<MudTable T="ComparedBomLine" Items="(ComparedBomLines ?? Array.Empty<ComparedBomLine>().ToList()).Where(line => line.ComparisonStatus != BomLineComparisonStatus.Unchanged)">
     <HeaderContent>
         <MudTh>Quantity</MudTh>
         <MudTh>Part Number</MudTh>
         <MudTh>Designators</MudTh>
+        <MudTh>Description</MudTh>
         <MudTh>Comparison Status</MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -15,14 +16,26 @@
         <MudTd DataLabel="Designators">
             @foreach (var designator in context.Designators)
             {
-                var styles = BuildStyleAttributes(designator.DesignatorComparisonStatus);
-                <span style="@styles">@designator.Name</span>
+                if (designator.DesignatorComparisonStatus == DesignatorComparisonStatus.Added)
+                {
+                    <MudText Inline="true" Color="@Color.Success">@designator.Name</MudText>
+                }
+                else if (designator.DesignatorComparisonStatus == DesignatorComparisonStatus.Removed)
+                {
+                    <MudText Style="text-decoration: line-through" Inline="true" Color="@Color.Error">@designator.Name</MudText>
+                }
+                else
+                {
+                    <MudText Inline="true">@designator.Name</MudText>
+                }
+                
                 if (designator != context.Designators.Last())
                 {
-                    @: ,
+                    @:,&nbsp;
                 }
             }
         </MudTd>
+        <MudTd DataLabel="Description">@context.Description</MudTd>
         <MudTd DataLabel="Comparison Status">@context.ComparisonStatus</MudTd>
     </RowTemplate>
 </MudTable>
@@ -30,25 +43,6 @@
 @code {
 
     [Parameter]
-    public List<ComparedBomLine> ComparedBomLines { get; set; }
-
-    public string BuildStyleAttributes(DesignatorComparisonStatus status)
-    {
-        string color = String.Empty;
-        
-        if (status == DesignatorComparisonStatus.Added)
-            color = "green";
-        else if (status == DesignatorComparisonStatus.Removed)
-            color = "red";
-        
-        var styleStringBuilder = new StringBuilder();
-        if(!string.IsNullOrEmpty(color))
-            styleStringBuilder.Append($"color:{color}; ");
-        
-        if(status == DesignatorComparisonStatus.Removed)
-            styleStringBuilder.Append("text-decoration: line-through; ");
-        
-        return styleStringBuilder.ToString();
-    }
+    public List<ComparedBomLine>? ComparedBomLines { get; set; }
 
 }
