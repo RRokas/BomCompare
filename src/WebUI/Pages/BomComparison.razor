@@ -11,7 +11,9 @@
     <MudItem xs="12" sm="6">
         <DragAndDropUpload HintText="Target BOM (.xls | .xlsx)" OnFileSelected="ReadTargetBomFile"/>
     </MudItem>
-    
+    <MudItem xs="12">
+        <DownloadStreamAsFileButton FileName="@_downloadFileName" FileContentStream="@_downloadStream" Text="Download comparison"/>
+    </MudItem>
     <MudItem xs="12">
         <BomComparisonPreviewTable ComparedBomLines="_comparedBomLines"/>
     </MudItem>
@@ -26,6 +28,8 @@
     private List<BomLine>? _sourceBomLines;
     private List<BomLine>? _targetBomLines;
     private List<ComparedBomLine>? _comparedBomLines;
+    private Stream? _downloadStream;
+    private string? _downloadFileName;
     
     private async Task<Stream> GetMemoryStreamFromIBrowserFile(IBrowserFile file)
     {
@@ -57,5 +61,21 @@
     {
         _comparedBomLines = BomComparisonService.CompareBom(_sourceBomLines, _targetBomLines);
         Snackbar.Add($"Successfully compared {_sourceBomLines.Count} lines from source BOM file with {_targetBomLines.Count} lines from target BOM file", Severity.Success);
+        PrepareComparisonResultForDownload();
+    }
+    
+    private void PrepareComparisonResultForDownload()
+    {
+        if (_comparedBomLines is null)
+        {
+            Snackbar.Add("No comparison result to download", Severity.Error);
+            return;
+        }
+
+        _downloadStream = ExcelWriter.WriteBomToStream(_comparedBomLines);
+        _downloadFileName = $"BomComparisonResult_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
+        Snackbar.Add("Comparison result ready for download", Severity.Success);
+        
+        StateHasChanged();
     }
 }

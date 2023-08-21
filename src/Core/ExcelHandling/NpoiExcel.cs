@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Diagnostics;
 using System.Reflection;
 using Core.Attributes;
 using Core.Entitites;
-using NPOI.HSSF.UserModel;
 using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
+using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 
 namespace Core;
@@ -69,23 +67,39 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         return bom;
     }
 
-    public void WriteBom(string path, List<ComparedBomLine> bom)
+    private XSSFWorkbook CreateBomWorkbook(List<ComparedBomLine> bom)
     {
-        using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
         var workbook = new XSSFWorkbook();
         var sheet = workbook.CreateSheet("BOM_comparison");
 
         // Create header rows from ExcelColumnName Attributes
         var properties = typeof(ComparedBomLine).GetProperties();
         CreateHeader(sheet, properties);
-        sheet.SetAutoFilter(new NPOI.SS.Util.CellRangeAddress(0, 0, 0, properties.Length - 1));
+        sheet.SetAutoFilter(new CellRangeAddress(0, 0, 0, properties.Length - 1));
         
         foreach (var bomLine in bom)
         {
             CreateBomLine(sheet, bomLine, properties);
         }
 
+        return workbook;
+    }
+
+    public void WriteBomToFile(string path, List<ComparedBomLine> bom)
+    {
+        var workbook = CreateBomWorkbook(bom);
+        using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
         workbook.Write(file);
+    }
+
+    public Stream WriteBomToStream(List<ComparedBomLine> bom)
+    {
+        const bool leaveStreamOpen = true;
+        var workbook = CreateBomWorkbook(bom);
+        var stream = new MemoryStream();
+        workbook.Write(stream, leaveStreamOpen);
+        stream.Position = 0;
+        return stream;
     }
 
     private void CreateHeader(ISheet sheet, PropertyInfo[] properties)

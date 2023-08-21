@@ -1,0 +1,25 @@
+@namespace WebUI.CustomComponents
+
+<MudButton OnClick="DownloadFile" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowDownward">@Text</MudButton>
+
+@inject IJSRuntime JsRuntime
+@code {
+    [Parameter]
+    public string? Text { get; set; }
+    
+    [Parameter]
+    public Stream? FileContentStream { get; set; }
+
+    [Parameter]
+    public string? FileName { get; set; }
+
+    private async Task DownloadFile()
+    {
+        if (FileContentStream == null || string.IsNullOrWhiteSpace(FileName))
+            throw new InvalidOperationException("FileContentStream and FileName must be set");
+        
+        var fileBlobReference = new DotNetStreamReference(FileContentStream);
+        await JsRuntime.InvokeVoidAsync("downloadFileFromStream", FileName, fileBlobReference);
+    }
+
+}

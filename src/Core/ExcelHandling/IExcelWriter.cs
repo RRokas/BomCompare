@@ -4,5 +4,6 @@ namespace Core;
 
 public interface IExcelWriter
 {
-    public void WriteBom(string path, List<ComparedBomLine> bom);
+    public void WriteBomToFile(string path, List<ComparedBomLine> bom);
+    public Stream WriteBomToStream(List<ComparedBomLine> bom);
 }

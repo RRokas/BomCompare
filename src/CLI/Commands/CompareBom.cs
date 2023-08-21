@@ -15,7 +15,7 @@ public class CompareBom : Command<CompareBomComandSettings>
         var comparer = new BomComparisonService();
         var result = comparer.CompareBom(source, target);
         AnsiConsole.WriteLine($"Compared item count: {result.Count}");
-        excel.WriteBom(settings.Output, result);
+        excel.WriteBomToFile(settings.Output, result);
         return 0;
     }
 }
