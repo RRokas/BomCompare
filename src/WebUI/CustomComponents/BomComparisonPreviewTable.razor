@@ -4,13 +4,46 @@
 @using Core
 @using System.Text
 
-<MudTable T="ComparedBomLine" Items="(ComparedBomLines ?? Array.Empty<ComparedBomLine>().ToList()).Where(line => line.ComparisonStatus != BomLineComparisonStatus.Unchanged)">
+<MudTable T="ComparedBomLine"
+          Filter="new Func<ComparedBomLine, bool>(FilterAllColumns)"
+          Items="ComparedBomLines ?? Array.Empty<ComparedBomLine>().ToList()">
+    
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Comparison Preview</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Search any column" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
     <HeaderContent>
-        <MudTh>Quantity</MudTh>
-        <MudTh>Part Number</MudTh>
-        <MudTh>Designators</MudTh>
-        <MudTh>Description</MudTh>
-        <MudTh>Comparison Status</MudTh>
+        <MudTh>
+            <MudTableSortLabel
+                SortBy="new Func<ComparedBomLine, object>(x => x.Quantity)">
+                Quantity
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel
+                SortBy="new Func<ComparedBomLine, object>(x => x.PartNumber)">
+                Part Number
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel
+                SortBy="new Func<ComparedBomLine, object>(x => string.Join(',', x.Designators.Select(d => d.Name)))">
+                Designators
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel
+                SortBy="new Func<ComparedBomLine, object>(x => x.Description)">
+                Description
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel
+                SortBy="new Func<ComparedBomLine, object>(x => x.ComparisonStatus)">
+                Comparison Status
+            </MudTableSortLabel>
+        </MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
@@ -30,7 +63,7 @@
                 {
                     <MudText Inline="true">@designator.Name</MudText>
                 }
-                
+
                 if (designator != context.Designators.Last())
                 {
                     @:,&nbsp;
@@ -40,11 +73,29 @@
         <MudTd DataLabel="Description">@context.Description</MudTd>
         <MudTd DataLabel="Comparison Status">@context.ComparisonStatus</MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+        <MudText>Comparison not done</MudText>
+    </NoRecordsContent>
+    <PagerContent>
+        <MudTablePager/>
+    </PagerContent>
 </MudTable>
 
 @code {
-
     [Parameter]
     public List<ComparedBomLine>? ComparedBomLines { get; set; }
+    
+    private string _searchString = string.Empty;
+    
+    private bool FilterAllColumns(ComparedBomLine line)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
 
+        var searchString = _searchString.ToLowerInvariant();
+        return line.Quantity.ToString().Contains(searchString)
+               || line.PartNumber.ToLowerInvariant().Contains(searchString)
+               || line.Description.ToLowerInvariant().Contains(searchString)
+               || line.Designators.Any(d => d.Name.ToLowerInvariant().Contains(searchString));
+    }
 }
