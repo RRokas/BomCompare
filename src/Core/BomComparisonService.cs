@@ -53,6 +53,8 @@ public class BomComparisonService : IBomComparisonService
 
     public ComparedBomLine CompareBomLine(BomLine source, BomLine target)
     {
+        _ = source ?? throw new ArgumentNullException(nameof(source));
+        _ = target ?? throw new ArgumentNullException(nameof(target));
         if (source.PartNumber != target.PartNumber)
             throw new ArgumentException("Part numbers must match to compare BOM lines");
 
@@ -82,20 +84,19 @@ public class BomComparisonService : IBomComparisonService
 
     private BomLineComparisonStatus DetermineBomLineComparisonStatus(List<Designator> designators)
     {
-        var distinctStatusesExcludingUnchanged = designators
+        var distinctStatuses = designators
             .Select(x => x.DesignatorComparisonStatus)
             .Distinct()
-            .Where(x => x != DesignatorComparisonStatus.Unchanged)
             .ToList();
-
-        if (distinctStatusesExcludingUnchanged.Count == 0)
+        
+        if(distinctStatuses.Count == 1 && distinctStatuses[0] == DesignatorComparisonStatus.Unchanged)
             return BomLineComparisonStatus.Unchanged;
-        if (distinctStatusesExcludingUnchanged.Count > 1)
-            return BomLineComparisonStatus.Modified;
-        if (distinctStatusesExcludingUnchanged[0] == DesignatorComparisonStatus.Added)
+        if(distinctStatuses.Count == 1 && distinctStatuses[0] == DesignatorComparisonStatus.Added)
             return BomLineComparisonStatus.Added;
-        if (distinctStatusesExcludingUnchanged[0] == DesignatorComparisonStatus.Removed)
+        if(distinctStatuses.Count == 1 && distinctStatuses[0] == DesignatorComparisonStatus.Removed)
             return BomLineComparisonStatus.Removed;
+        if(distinctStatuses.Count > 1)
+            return BomLineComparisonStatus.Modified;
         
         throw new ConstraintException("Unhandled comparison status");
     }

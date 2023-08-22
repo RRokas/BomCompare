@@ -38,29 +38,36 @@
         memoryStream.Position = 0;
         return memoryStream;
     }    
-
-    private async Task ReadSourceBomFile(IBrowserFile file)
-    {
-        var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
-        _sourceBomLines = ExcelReader.ReadBom(memoryStream);
-        Snackbar.Add($"Successfully read {_sourceBomLines.Count} lines from source BOM file", Severity.Success);
-        if (_sourceBomLines is not null && _targetBomLines is not null)
-            CompareBoms();
-    }
     
-    private async Task ReadTargetBomFile(IBrowserFile file)
+    private async Task ReadBomFile(IBrowserFile file, Action<List<BomLine>> onSuccess)
     {
-        var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
-        _targetBomLines = ExcelReader.ReadBom(memoryStream);
-        Snackbar.Add($"Successfully read {_targetBomLines.Count} lines from target BOM file", Severity.Success);
-        if (_sourceBomLines is not null && _targetBomLines is not null)
-            CompareBoms();
+        try
+        {
+            var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
+            onSuccess(ExcelReader.ReadBom(memoryStream));
+            Snackbar.Add($"Successfully read lines from BOM file: {file.Name}", Severity.Success);
+            if (_sourceBomLines is not null && _targetBomLines is not null)
+                CompareBoms();
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Error reading BOM file: {e.Message}", Severity.Error);
+        }
+    }
+
+    private Task ReadSourceBomFile(IBrowserFile file)
+    {
+        return ReadBomFile(file, bomLines => _sourceBomLines = bomLines);
+    }
+
+    private Task ReadTargetBomFile(IBrowserFile file)
+    {
+        return ReadBomFile(file, bomLines => _targetBomLines = bomLines);
     }
     
     private void CompareBoms()
     {
         _comparedBomLines = BomComparisonService.CompareBom(_sourceBomLines, _targetBomLines);
-        Snackbar.Add($"Successfully compared {_sourceBomLines.Count} lines from source BOM file with {_targetBomLines.Count} lines from target BOM file", Severity.Success);
         PrepareComparisonResultForDownload();
     }
     

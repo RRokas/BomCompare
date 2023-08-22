@@ -25,4 +25,17 @@
       <ProjectReference Include="..\..\src\Core\Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="test_data\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="test_data\2_lines.xlsx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="test_data\2_lines.xls">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
