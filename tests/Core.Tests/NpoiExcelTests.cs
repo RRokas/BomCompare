@@ -81,7 +81,7 @@ public class NpoiExcelTests
     public void WriteComparisonToFile()
     {
         var comparer = new BomComparisonService();
-        
+
         var sourceBom = new List<BomLine>
         {
             new BomLine
@@ -90,13 +90,29 @@ public class NpoiExcelTests
                 PartNumber = "321",
                 Designators = new List<Designator>
                 {
-                    new Designator { Name = "R1" },
-                    new Designator { Name = "R3" },
-                    new Designator { Name = "R4" },
-                }
+                    new Designator
+                    {
+                        Name = "R1"
+                    },
+                    new Designator
+                    {
+                        Name = "R3"
+                    },
+                    new Designator
+                    {
+                        Name = "R4"
+                    },
+                },
+                Value = "SomeValue",
+                SMD = "Yes",
+                Description = "SomeDescription",
+                Manufacturer = "Contoso",
+                ManufacturerPartNumber = "ContosoPartNumber",
+                Distributor = "ContosoDistributor",
+                DistributorPartNumber = "DistriubtorPartNumber"
             }
         };
-        
+
         var targetBom = new List<BomLine>
         {
             new BomLine
@@ -107,7 +123,14 @@ public class NpoiExcelTests
                 {
                     new Designator { Name = "R1" },
                     new Designator { Name = "R4" },
-                }
+                },
+                Value = "SomeValue",
+                SMD = "Yes",
+                Description = "SomeDescription",
+                Manufacturer = "Contoso",
+                ManufacturerPartNumber = "ContosoPartNumber",
+                Distributor = "ContosoDistributor",
+                DistributorPartNumber = "DistriubtorPartNumber"
             },
             new BomLine
             {
@@ -121,9 +144,9 @@ public class NpoiExcelTests
                 }
             }
         };
-        
+
         var result = comparer.CompareBom(sourceBom, targetBom);
-        
+
         var excel = new NpoiExcel();
         excel.WriteBomToFile("Write_Test.xlsx", result);
 
@@ -135,15 +158,20 @@ public class NpoiExcelTests
         Assert.Equal(result[0].Designators[0].Name, readFromFile[0].Designators[0].Name);
         Assert.Equal(result[0].Designators[1].Name, readFromFile[0].Designators[1].Name);
         Assert.Equal(result[0].Designators[2].Name, readFromFile[0].Designators[2].Name);
-        
-        File.Delete("Write_Test.xlsx");
+        Assert.Equal(result[0].Value, readFromFile[0].Value);
+        Assert.Equal(result[0].SMD, readFromFile[0].SMD);
+        Assert.Equal(result[0].Description, readFromFile[0].Description);
+        Assert.Equal(result[0].Manufacturer, readFromFile[0].Manufacturer);
+        Assert.Equal(result[0].ManufacturerPartNumber, readFromFile[0].ManufacturerPartNumber);
+        Assert.Equal(result[0].Distributor, readFromFile[0].Distributor);
+        Assert.Equal(result[0].DistributorPartNumber, readFromFile[0].DistributorPartNumber);
     }
 
     [Fact]
     public void WriteToStream()
     {
-                var comparer = new BomComparisonService();
-        
+        var comparer = new BomComparisonService();
+
         var sourceBom = new List<BomLine>
         {
             new BomLine
@@ -155,10 +183,17 @@ public class NpoiExcelTests
                     new Designator { Name = "R1" },
                     new Designator { Name = "R3" },
                     new Designator { Name = "R4" },
-                }
+                },
+                Value = "SomeValue",
+                SMD = "Yes",
+                Description = "SomeDescription",
+                Manufacturer = "Contoso",
+                ManufacturerPartNumber = "ContosoPartNumber",
+                Distributor = "ContosoDistributor",
+                DistributorPartNumber = "DistriubtorPartNumber"
             }
         };
-        
+
         var targetBom = new List<BomLine>
         {
             new BomLine
@@ -183,12 +218,12 @@ public class NpoiExcelTests
                 }
             }
         };
-        
+
         var result = comparer.CompareBom(sourceBom, targetBom);
-        
+
         var excel = new NpoiExcel();
         var comparisonExcelStream = excel.WriteBomToStream(result);
-        
+
         var readFromStream = excel.ReadBom(comparisonExcelStream);
         Assert.Equal(result.Count, readFromStream.Count);
         Assert.Equal(result[0].PartNumber, readFromStream[0].PartNumber);
@@ -197,5 +232,12 @@ public class NpoiExcelTests
         Assert.Equal(result[0].Designators[0].Name, readFromStream[0].Designators[0].Name);
         Assert.Equal(result[0].Designators[1].Name, readFromStream[0].Designators[1].Name);
         Assert.Equal(result[0].Designators[2].Name, readFromStream[0].Designators[2].Name);
+        Assert.Equal(result[0].Value, readFromStream[0].Value);
+        Assert.Equal(result[0].SMD, readFromStream[0].SMD);
+        Assert.Equal(result[0].Description, readFromStream[0].Description);
+        Assert.Equal(result[0].Manufacturer, readFromStream[0].Manufacturer);
+        Assert.Equal(result[0].ManufacturerPartNumber, readFromStream[0].ManufacturerPartNumber);
+        Assert.Equal(result[0].Distributor, readFromStream[0].Distributor);
+        Assert.Equal(result[0].DistributorPartNumber, readFromStream[0].DistributorPartNumber);
     }
 }
