@@ -2,6 +2,7 @@
 @using Core.Entitites
 @using WebUI.CustomComponents
 @using Core
+@using NPOI.OpenXml4Net.Exceptions
 
 <h1>Bom Comparison</h1>
 <MudGrid>
@@ -15,7 +16,7 @@
         <DownloadStreamAsFileButton FileName="@_downloadFileName" FileContentStream="@_downloadStream" Text="Download comparison"/>
     </MudItem>
     <MudItem xs="12">
-        <BomComparisonPreviewTable ComparedBomLines="_comparedBomLines"/>
+        <BomComparisonPreviewTable ComparedBom="_comparedBom"/>
     </MudItem>
 </MudGrid>
 
@@ -25,9 +26,9 @@
 @inject IBomComparisonService BomComparisonService
 
 @code {
-    private List<BomLine>? _sourceBomLines;
-    private List<BomLine>? _targetBomLines;
-    private List<ComparedBomLine>? _comparedBomLines;
+    private Bom? _sourceBom;
+    private Bom? _targetBom;
+    private ComparedBom? _comparedBom;
     private Stream? _downloadStream;
     private string? _downloadFileName;
     
@@ -39,15 +40,19 @@
         return memoryStream;
     }    
     
-    private async Task ReadBomFile(IBrowserFile file, Action<List<BomLine>> onSuccess)
+    private async Task ReadBomFile(IBrowserFile file, Action<Bom> onSuccess)
     {
         try
         {
             var memoryStream = await GetMemoryStreamFromIBrowserFile(file);
-            onSuccess(ExcelReader.ReadBom(memoryStream));
+            onSuccess(ExcelReader.ReadBom(memoryStream, file.Name));
             Snackbar.Add($"Successfully read lines from BOM file: {file.Name}", Severity.Success);
-            if (_sourceBomLines is not null && _targetBomLines is not null)
+            if (_sourceBom is not null && _targetBom is not null)
                 CompareBoms();
+        }
+        catch (InvalidFormatException)
+        {
+            Snackbar.Add("Invalid file format. Please make sure you're uploading an excel file (.xls, .xlsx)", Severity.Error);
         }
         catch (Exception e)
         {
@@ -57,29 +62,29 @@
 
     private Task ReadSourceBomFile(IBrowserFile file)
     {
-        return ReadBomFile(file, bomLines => _sourceBomLines = bomLines);
+        return ReadBomFile(file, bomLines => _sourceBom = bomLines);
     }
 
     private Task ReadTargetBomFile(IBrowserFile file)
     {
-        return ReadBomFile(file, bomLines => _targetBomLines = bomLines);
+        return ReadBomFile(file, bomLines => _targetBom = bomLines);
     }
     
     private void CompareBoms()
     {
-        _comparedBomLines = BomComparisonService.CompareBom(_sourceBomLines, _targetBomLines);
+        _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
         PrepareComparisonResultForDownload();
     }
     
     private void PrepareComparisonResultForDownload()
     {
-        if (_comparedBomLines is null)
+        if (_comparedBom is null)
         {
             Snackbar.Add("No comparison result to download", Severity.Error);
             return;
         }
 
-        _downloadStream = ExcelWriter.WriteBomToStream(_comparedBomLines);
+        _downloadStream = ExcelWriter.WriteBomToStream(_comparedBom);
         _downloadFileName = $"BomComparisonResult_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
         Snackbar.Add("Comparison result ready for download", Severity.Success);
         

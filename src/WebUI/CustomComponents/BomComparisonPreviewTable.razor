@@ -6,7 +6,7 @@
 
 <MudTable T="ComparedBomLine"
           Filter="new Func<ComparedBomLine, bool>(FilterAllColumns)"
-          Items="ComparedBomLines ?? Array.Empty<ComparedBomLine>().ToList()"
+          Items="ComparedBom?.ComparedBomLines ?? Array.Empty<ComparedBomLine>().ToList()"
           insta>
     
     <ToolBarContent>
@@ -84,7 +84,7 @@
 
 @code {
     [Parameter]
-    public List<ComparedBomLine>? ComparedBomLines { get; set; }
+    public ComparedBom? ComparedBom { get; set; }
     
     private string _searchString = string.Empty;
     

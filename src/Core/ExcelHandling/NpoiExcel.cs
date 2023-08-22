@@ -10,15 +10,15 @@ namespace Core;
 
 public class NpoiExcel : IExcelReader, IExcelWriter
 {
-    public List<BomLine> ReadBom(string path)
+    public Bom ReadBom(FileInfo path)
     {
-        using var file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        return ReadBom(file);
+        using var file = new FileStream(path.FullName, FileMode.Open, FileAccess.Read);
+        return ReadBom(file, path.Name);
     }
 
-    public List<BomLine> ReadBom(Stream stream)
+    public Bom ReadBom(Stream stream, string filename)
     {
-        var bom = new List<BomLine>();
+        var bomLines = new List<BomLine>();
         var workbook = WorkbookFactory.Create(stream);
         var sheet = workbook.GetSheetAt(0);
         var headers = sheet.GetRow(0).Cells.Select(cell => cell.StringCellValue).ToList();
@@ -63,41 +63,46 @@ public class NpoiExcel : IExcelReader, IExcelWriter
                     }
                 }
             }
-            bom.Add(bomLine);
+            bomLines.Add(bomLine);
         }
         
-        return bom;
+        return new Bom
+        {
+            BomLines = bomLines,
+            FileName = filename
+        };
     }
 
-    private XSSFWorkbook CreateBomWorkbook(List<ComparedBomLine> bom)
+    private XSSFWorkbook CreateBomComparisonWorkbook(ComparedBom comparedBom)
     {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.CreateSheet("BOM_comparison");
-
-        // Create header rows from ExcelColumnName Attributes
+        
         var properties = typeof(ComparedBomLine).GetProperties();
         CreateHeader(sheet, properties);
         sheet.SetAutoFilter(new CellRangeAddress(0, 0, 0, properties.Length - 1));
         
-        foreach (var bomLine in bom)
+        foreach (var bomLine in comparedBom.ComparedBomLines)
         {
             CreateBomLine(sheet, bomLine, properties);
         }
+        
+        WriteComparisonFilenamesToNewSheet(workbook, comparedBom);
 
         return workbook;
     }
 
-    public void WriteBomToFile(string path, List<ComparedBomLine> bom)
+    public void WriteBomToFile(string path, ComparedBom comparedBom)
     {
-        var workbook = CreateBomWorkbook(bom);
+        var workbook = CreateBomComparisonWorkbook(comparedBom);
         using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
         workbook.Write(file);
     }
 
-    public Stream WriteBomToStream(List<ComparedBomLine> bom)
+    public Stream WriteBomToStream(ComparedBom bom)
     {
         const bool leaveStreamOpen = true;
-        var workbook = CreateBomWorkbook(bom);
+        var workbook = CreateBomComparisonWorkbook(bom);
         var stream = new MemoryStream();
         workbook.Write(stream, leaveStreamOpen);
         stream.Position = 0;
@@ -207,5 +212,26 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             var value = property.GetValue(bomLine, null);
             CreateCellAndSetValue(row, i, value);
         }
+    }
+    
+    private void WriteComparisonFilenamesToNewSheet(IWorkbook book, ComparedBom comparedBom)
+    {
+        var sheet = book.CreateSheet("Comparison_filenames");
+        var row = sheet.CreateRow(0);
+        
+        var sourceCell = row.CreateCell(0);
+        sourceCell.SetCellValue("Source filename");
+        
+        var targetCell = row.CreateCell(1);
+        targetCell.SetCellValue("Target filename");
+        
+        var secondRow = sheet.CreateRow(1);
+        
+        var sourceFilenameCell = secondRow.CreateCell(0);
+        sourceFilenameCell.SetCellValue(comparedBom.SourceBom.FileName);
+        
+        var targetFilenameCell = secondRow.CreateCell(1);
+        targetFilenameCell.SetCellValue(comparedBom.TargetBom.FileName);
+        
     }
 }

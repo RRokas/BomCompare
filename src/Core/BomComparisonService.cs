@@ -5,18 +5,18 @@ namespace Core;
 
 public interface IBomComparisonService
 {
-    public List<ComparedBomLine> CompareBom(List<BomLine> source, List<BomLine> target);
+    public ComparedBom CompareBom(Bom source, Bom target);
     public ComparedBomLine CompareBomLine(BomLine source, BomLine target);
 }
 
 public class BomComparisonService : IBomComparisonService
 {
-    public List<ComparedBomLine> CompareBom(List<BomLine> source, List<BomLine> target)
+    public ComparedBom CompareBom(Bom source, Bom target)
     {
         var comparedBom = new List<ComparedBomLine>();
-        foreach (var sourceBomLine in source)
+        foreach (var sourceBomLine in source.BomLines)
         {
-            var targetBomLine = target.FirstOrDefault(x => x.PartNumber == sourceBomLine.PartNumber);
+            var targetBomLine = target.BomLines.FirstOrDefault(x => x.PartNumber == sourceBomLine.PartNumber);
             if(targetBomLine is null)
             {
                 var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
@@ -35,11 +35,11 @@ public class BomComparisonService : IBomComparisonService
             
         }
         
-        var newPartNumbersInTarget = target
+        var newPartNumbersInTarget = target.BomLines
             .Select(t => t.PartNumber)
-            .Except(source.Select(s => s.PartNumber))
+            .Except(source.BomLines.Select(s => s.PartNumber))
             .ToList();
-        foreach (var bomLine in target.Where(x => newPartNumbersInTarget.Contains(x.PartNumber)))
+        foreach (var bomLine in target.BomLines.Where(x => newPartNumbersInTarget.Contains(x.PartNumber)))
         {
             var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(bomLine);
             foreach (var designator in bomLine.Designators)
@@ -48,7 +48,12 @@ public class BomComparisonService : IBomComparisonService
             comparedBom.Add(comparedBomLine);
         }
 
-        return comparedBom;
+        return new ComparedBom
+        {
+            SourceBom = source,
+            TargetBom = target,
+            ComparedBomLines = comparedBom
+        };
     }
 
     public ComparedBomLine CompareBomLine(BomLine source, BomLine target)

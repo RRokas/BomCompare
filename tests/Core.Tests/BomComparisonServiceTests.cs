@@ -111,9 +111,9 @@ public class BomComparisonServiceTests
     {
         var comparer = new BomComparisonService();
         
-        var sourceBom = new List<BomLine>();
+        var sourceBomLines = new List<BomLine>();
         
-        var targetBom = new List<BomLine>
+        var targetBomLines = new List<BomLine>
         {
             new BomLine
             {
@@ -128,9 +128,19 @@ public class BomComparisonServiceTests
             }
         };
         
+        var sourceBom = new Bom
+        {
+            BomLines = sourceBomLines
+        };
+        
+        var targetBom = new Bom
+        {
+            BomLines = targetBomLines
+        };
+        
         var result = comparer.CompareBom(sourceBom, targetBom);
-        Assert.Single(result);
-        Assert.Equal(BomLineComparisonStatus.Added, result[0].ComparisonStatus);
+        Assert.Single(result.ComparedBomLines);
+        Assert.Equal(BomLineComparisonStatus.Added, result.ComparedBomLines[0].ComparisonStatus);
     }
 
     [Fact]
@@ -138,7 +148,7 @@ public class BomComparisonServiceTests
     {
         var comparer = new BomComparisonService();
         
-        var sourceBom = new List<BomLine>
+        var sourceBomLines = new List<BomLine>
         {
             new BomLine
             {
@@ -153,11 +163,21 @@ public class BomComparisonServiceTests
             }
         };
 
-        var targetBom = new List<BomLine>();
+        var targetBomLines = new List<BomLine>();
+        
+        var sourceBom = new Bom
+        {
+            BomLines = sourceBomLines
+        };
+        
+        var targetBom = new Bom
+        {
+            BomLines = targetBomLines
+        };
         
         var result = comparer.CompareBom(sourceBom, targetBom);
-        Assert.Single(result);
-        Assert.Equal(BomLineComparisonStatus.Removed, result[0].ComparisonStatus);
+        Assert.Single(result.ComparedBomLines);
+        Assert.Equal(BomLineComparisonStatus.Removed, result.ComparedBomLines[0].ComparisonStatus);
     }
 
     [Fact]

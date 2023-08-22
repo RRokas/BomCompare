@@ -4,6 +4,6 @@ namespace Core;
 
 public interface IExcelReader
 {
-    public List<BomLine> ReadBom(string path);
-    public List<BomLine> ReadBom(Stream stream);
+    public Bom ReadBom(FileInfo path);
+    public Bom ReadBom(Stream stream, string filename);
 }
