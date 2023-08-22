@@ -16,4 +16,10 @@ public class Designator
         Name = name;
         DesignatorComparisonStatus = designatorComparisonStatus;
     }
+
+    public Designator(string name)
+    {
+        Name = name;
+        DesignatorComparisonStatus = DesignatorComparisonStatus.NotCompared;
+    }
 }

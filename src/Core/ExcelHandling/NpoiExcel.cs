@@ -19,7 +19,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
     public List<BomLine> ReadBom(Stream stream)
     {
         var bom = new List<BomLine>();
-        var workbook = new XSSFWorkbook(stream);
+        var workbook = WorkbookFactory.Create(stream);
         var sheet = workbook.GetSheetAt(0);
         var headers = sheet.GetRow(0).Cells.Select(cell => cell.StringCellValue).ToList();
         var rowCount = sheet.LastRowNum;
@@ -30,6 +30,8 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             var row = sheet.GetRow(i);
             var bomLine = new BomLine();
             
+            if(row == null)
+                break;
 
             foreach (var property in properties)
             {
@@ -43,7 +45,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
                         var cell = row.GetCell(column);
                         if (property.PropertyType == typeof(string)) 
                         {
-                            property.SetValue(bomLine, cell.StringCellValue);
+                            property.SetValue(bomLine, cell.ToString());
                         }
                         else if (property.PropertyType == typeof(int)) 
                         {
@@ -51,9 +53,9 @@ public class NpoiExcel : IExcelReader, IExcelWriter
                         } 
                         else if (property.PropertyType == typeof(List<Designator>))
                         {
-                            var desigs = cell.StringCellValue
-                                .Split(", ")
-                                .Select(x => new Designator(x, DesignatorComparisonStatus.NotCompared))
+                            var desigs = cell.ToString()
+                                .Split(new[] { ", ", "," }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                .Select(name => new Designator(name))
                                 .ToList();
 
                             property.SetValue(bomLine, desigs);
