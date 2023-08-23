@@ -1,8 +1,6 @@
 using Core.Entitites;
+using Core.ExcelHandling;
 using Core.Tests.Utilities;
-using DocumentFormat.OpenXml.Spreadsheet;
-using NPOI.HSSF.UserModel;
-using NPOI.SS.UserModel;
 
 namespace Core.Tests;
 
@@ -19,8 +17,8 @@ public class NpoiExcelTests
 
         Assert.Equal(1, bomLines[0].Quantity);
         Assert.Equal("12345", bomLines[0].PartNumber);
-        Assert.Equal(bomLines[0].Designators[0].Name, "A1200");
-        Assert.Equal(bomLines[0].Designators[1].Name, "A1201");
+        Assert.Equal("A1200", bomLines[0].Designators[0].Name);
+        Assert.Equal("A1201", bomLines[0].Designators[1].Name);
         Assert.Equal("10nF", bomLines[0].Value);
         Assert.Equal("Yes", bomLines[0].SMD);
         Assert.Equal("GPS module", bomLines[0].Description);
@@ -31,8 +29,8 @@ public class NpoiExcelTests
 
         Assert.Equal(2, bomLines[1].Quantity);
         Assert.Equal("12346", bomLines[1].PartNumber);
-        Assert.Equal(bomLines[1].Designators[0].Name, "C1000");
-        Assert.Equal(bomLines[1].Designators[1].Name, "C1001");
+        Assert.Equal("C1000", bomLines[1].Designators[0].Name);
+        Assert.Equal("C1001", bomLines[1].Designators[1].Name);
         Assert.Equal("47uFx10V", bomLines[1].Value);
         Assert.Equal("No", bomLines[1].SMD);
         Assert.Equal("Capacitor", bomLines[1].Description);
@@ -54,8 +52,8 @@ public class NpoiExcelTests
 
         Assert.Equal(1, bomLines[0].Quantity);
         Assert.Equal("12345", bomLines[0].PartNumber);
-        Assert.Equal(bomLines[0].Designators[0].Name, "A1200");
-        Assert.Equal(bomLines[0].Designators[1].Name, "A1201");
+        Assert.Equal("A1200", bomLines[0].Designators[0].Name);
+        Assert.Equal("A1201", bomLines[0].Designators[1].Name);
         Assert.Equal("10nF", bomLines[0].Value);
         Assert.Equal("Yes", bomLines[0].SMD);
         Assert.Equal("GPS module", bomLines[0].Description);
@@ -66,8 +64,8 @@ public class NpoiExcelTests
 
         Assert.Equal(2, bomLines[1].Quantity);
         Assert.Equal("12346", bomLines[1].PartNumber);
-        Assert.Equal(bomLines[1].Designators[0].Name, "C1000");
-        Assert.Equal(bomLines[1].Designators[1].Name, "C1001");
+        Assert.Equal("C1000", bomLines[1].Designators[0].Name);
+        Assert.Equal("C1001", bomLines[1].Designators[1].Name);
         Assert.Equal("47uFx10V", bomLines[1].Value);
         Assert.Equal("No", bomLines[1].SMD);
         Assert.Equal("Capacitor", bomLines[1].Description);
@@ -155,7 +153,7 @@ public class NpoiExcelTests
         var comparedBomLines = result.ComparedBomLines;
 
         var excel = new NpoiExcel();
-        excel.WriteBomToFile("Write_Test.xlsx", result);
+        excel.WriteBomComparisonToFile("Write_Test.xlsx", result);
 
         var readFromFile = excel.ReadBom(new FileInfo("Write_Test.xlsx")).BomLines;
         Assert.Equal(comparedBomLines.Count, readFromFile.Count);
@@ -175,7 +173,7 @@ public class NpoiExcelTests
     }
 
     [Fact]
-    public void WriteToStream()
+    public void WriteComparisonToStream()
     {
         var comparer = new BomComparisonService();
 
@@ -236,7 +234,7 @@ public class NpoiExcelTests
         var comparedBomLines = result.ComparedBomLines;
 
         var excel = new NpoiExcel();
-        var comparisonExcelStream = excel.WriteBomToStream(result);
+        var comparisonExcelStream = excel.WriteBomComparisonToStream(result);
 
         var readFromStream = excel.ReadBom(comparisonExcelStream, "test.xlsx").BomLines;
         Assert.Equal(comparedBomLines.Count, readFromStream.Count);
