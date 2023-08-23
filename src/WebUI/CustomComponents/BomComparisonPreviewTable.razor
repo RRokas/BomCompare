@@ -98,6 +98,7 @@
         return line.Quantity.ToString().Contains(searchString)
                || line.PartNumber.ToLowerInvariant().Contains(searchString)
                || line.Description.ToLowerInvariant().Contains(searchString)
-               || line.Designators.Any(d => d.Name.ToLowerInvariant().Contains(searchString));
+               || line.Designators.Any(d => d.Name.ToLowerInvariant().Contains(searchString))
+               || line.ComparisonStatus.ToString().ToLowerInvariant().Contains(searchString);
     }
 }
