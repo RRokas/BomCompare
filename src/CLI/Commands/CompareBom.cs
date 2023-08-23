@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Core;
+using Core.ExcelHandling;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -15,7 +16,7 @@ public class CompareBom : Command<CompareBomComandSettings>
         var comparer = new BomComparisonService();
         var result = comparer.CompareBom(source, target);
         AnsiConsole.WriteLine($"Compared item count: {result.ComparedBomLines.Count}");
-        excel.WriteBomToFile(settings.Output, result);
+        excel.WriteBomComparisonToFile(settings.Output, result);
         return 0;
     }
 }

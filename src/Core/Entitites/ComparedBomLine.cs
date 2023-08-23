@@ -1,4 +1,5 @@
 ﻿using Core.Attributes;
+using Core.Enums;
 
 namespace Core.Entitites;
 

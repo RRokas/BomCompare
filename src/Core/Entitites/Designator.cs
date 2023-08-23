@@ -1,3 +1,5 @@
+using Core.Enums;
+
 namespace Core.Entitites;
 
 public class Designator

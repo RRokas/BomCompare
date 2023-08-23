@@ -1,5 +1,6 @@
 using System.Data;
 using Core.Entitites;
+using Core.Enums;
 
 namespace Core;
 

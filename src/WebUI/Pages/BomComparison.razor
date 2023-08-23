@@ -2,6 +2,7 @@
 @using Core.Entitites
 @using WebUI.CustomComponents
 @using Core
+@using Core.ExcelHandling
 @using NPOI.OpenXml4Net.Exceptions
 
 <h1>Bom Comparison</h1>
@@ -72,6 +73,9 @@
     
     private void CompareBoms()
     {
+        if(_sourceBom is null || _targetBom is null)
+            return;
+        
         _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
         PrepareComparisonResultForDownload();
     }
@@ -84,7 +88,7 @@
             return;
         }
 
-        _downloadStream = ExcelWriter.WriteBomToStream(_comparedBom);
+        _downloadStream = ExcelWriter.WriteBomComparisonToStream(_comparedBom);
         _downloadFileName = $"BomComparisonResult_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
         Snackbar.Add("Comparison result ready for download", Severity.Success);
         

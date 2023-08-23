@@ -1,12 +1,13 @@
 using System.Reflection;
 using Core.Attributes;
 using Core.Entitites;
+using Core.Enums;
 using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 
-namespace Core;
+namespace Core.ExcelHandling;
 
 public class NpoiExcel : IExcelReader, IExcelWriter
 {
@@ -92,14 +93,14 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         return workbook;
     }
 
-    public void WriteBomToFile(string path, ComparedBom comparedBom)
+    public void WriteBomComparisonToFile(string path, ComparedBom comparedBom)
     {
         var workbook = CreateBomComparisonWorkbook(comparedBom);
         using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
         workbook.Write(file);
     }
 
-    public Stream WriteBomToStream(ComparedBom bom)
+    public Stream WriteBomComparisonToStream(ComparedBom bom)
     {
         const bool leaveStreamOpen = true;
         var workbook = CreateBomComparisonWorkbook(bom);
@@ -210,7 +211,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             if (!attr.Any()) continue;
 
             var value = property.GetValue(bomLine, null);
-            CreateCellAndSetValue(row, i, value);
+            CreateCellAndSetValue(row, i, value ?? String.Empty);
         }
     }
     

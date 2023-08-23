@@ -1,6 +1,6 @@
 using Core.Entitites;
 
-namespace Core;
+namespace Core.ExcelHandling;
 
 public interface IExcelReader
 {

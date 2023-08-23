@@ -1,4 +1,5 @@
 using Core.Entitites;
+using Core.Enums;
 
 namespace Core.Tests;
 
