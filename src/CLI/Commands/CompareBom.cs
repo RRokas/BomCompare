@@ -3,7 +3,7 @@ using Core.ExcelHandling.Npoi;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace CLI;
+namespace CLI.Commands;
 
 public class CompareBom : Command<CompareBomComandSettings>
 {

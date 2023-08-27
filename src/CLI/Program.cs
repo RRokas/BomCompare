@@ -1,4 +1,4 @@
-using CLI;
+using CLI.Commands;
 using Spectre.Console.Cli;
 
 var app = new CommandApp();

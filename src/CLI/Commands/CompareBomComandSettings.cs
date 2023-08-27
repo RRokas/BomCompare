@@ -1,7 +1,6 @@
-using System.ComponentModel;
 using Spectre.Console.Cli;
 
-namespace CLI;
+namespace CLI.Commands;
 
 public class CompareBomComandSettings : CommandSettings
 {
