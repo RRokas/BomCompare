@@ -142,6 +142,7 @@ public class BomComparisonServiceTests
         var result = comparer.CompareBom(sourceBom, targetBom);
         Assert.Single(result.ComparedBomLines);
         Assert.Equal(BomLineComparisonStatus.Added, result.ComparedBomLines[0].ComparisonStatus);
+        Assert.Equal(3, result.ComparedBomLines[0].Designators.Count);
     }
 
     [Fact]
@@ -179,6 +180,7 @@ public class BomComparisonServiceTests
         var result = comparer.CompareBom(sourceBom, targetBom);
         Assert.Single(result.ComparedBomLines);
         Assert.Equal(BomLineComparisonStatus.Removed, result.ComparedBomLines[0].ComparisonStatus);
+        Assert.Equal(3, result.ComparedBomLines[0].Designators.Count);
     }
 
     [Fact]
@@ -217,5 +219,75 @@ public class BomComparisonServiceTests
         Assert.Throws<ArgumentNullException>(() => comparer.CompareBomLine(source, null));
         Assert.Throws<ArgumentNullException>(() => comparer.CompareBomLine(null, source));
         Assert.Throws<ArgumentNullException>(() => comparer.CompareBomLine(null, null));
+    }
+
+    [Fact]
+    public void DesignatorsInComparisonKeepOrder_RemovedInTarget()
+    {
+        var comparer = new BomComparisonService();
+        var source = new BomLine
+        {
+            Quantity = 1,
+            PartNumber = "123",
+            Designators = new List<Designator>
+            {
+                new Designator { Name = "R1" },
+                new Designator { Name = "R2" },
+                new Designator { Name = "R3" },
+            }
+        };
+        
+        var target = new BomLine
+        {
+            Quantity = 1,
+            PartNumber = "123",
+            Designators = new List<Designator>
+            {
+                new Designator { Name = "R1" },
+                new Designator { Name = "R3" },
+            }
+        };
+        
+        var result = comparer.CompareBomLine(source, target);
+        Assert.Equal(3, result.Designators.Count);
+        Assert.Equal("R1", result.Designators[0].Name);
+        Assert.Equal("R2", result.Designators[1].Name);
+        Assert.Equal("R3", result.Designators[2].Name);
+    }
+    
+    [Fact]
+    public void DesignatorsInComparisonKeepOrder_AddedInTarget()
+    {
+        var comparer = new BomComparisonService();
+        var source = new BomLine
+        {
+            Quantity = 1,
+            PartNumber = "123",
+            Designators = new List<Designator>
+            {
+                new Designator { Name = "R1" },
+                new Designator { Name = "R2" },
+                new Designator { Name = "R3" },
+            }
+        };
+        
+        var target = new BomLine
+        {
+            Quantity = 1,
+            PartNumber = "123",
+            Designators = new List<Designator>
+            {
+                new Designator { Name = "R1" },
+                new Designator { Name = "R10" },
+                new Designator { Name = "R2" },
+                new Designator { Name = "R3" },
+            }
+        };
+        
+        var result = comparer.CompareBomLine(source, target);
+        Assert.Equal(4, result.Designators.Count);
+        Assert.Equal("R1", result.Designators[0].Name);
+        Assert.Equal("R10", result.Designators[1].Name);
+        Assert.Equal("R2", result.Designators[2].Name);
     }
 }
