@@ -17,7 +17,7 @@ public class BomComparisonService : IBomComparisonService
         var comparedBom = new List<ComparedBomLine>();
         foreach (var sourceBomLine in source.BomLines)
         {
-            var targetBomLine = target.BomLines.FirstOrDefault(x => x.PartNumber == sourceBomLine.PartNumber);
+            var targetBomLine = target.BomLines.Find(x => x.PartNumber == sourceBomLine.PartNumber);
             if(targetBomLine is null)
             {
                 var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
@@ -66,20 +66,20 @@ public class BomComparisonService : IBomComparisonService
 
         var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(source);
 
-        foreach (var sourceDesignator in source.Designators)
+        foreach (var sourceDesignatorName in source.Designators.Select(x=>x.Name))
         {
-            var targetDesignator = target.Designators.FirstOrDefault(x => x.Name == sourceDesignator.Name);
+            var targetDesignator = target.Designators.Find(x => x.Name == sourceDesignatorName);
             comparedBomLine.Designators.Add(targetDesignator is null
-                ? new Designator(sourceDesignator.Name, DesignatorComparisonStatus.Removed)
-                : new Designator(sourceDesignator.Name, DesignatorComparisonStatus.Unchanged));
+                ? new Designator(sourceDesignatorName, DesignatorComparisonStatus.Removed)
+                : new Designator(sourceDesignatorName, DesignatorComparisonStatus.Unchanged));
         }
         
-        foreach (var targetDesignator in target.Designators)
+        foreach (var targetDesignatorName in target.Designators.Select(x=>x.Name))
         {
-            var sourceDesignator = source.Designators.FirstOrDefault(x => x.Name == targetDesignator.Name);
+            var sourceDesignator = source.Designators.Find(x => x.Name == targetDesignatorName);
             if (sourceDesignator is null)
             {
-                comparedBomLine.Designators.Add(new Designator(targetDesignator.Name, DesignatorComparisonStatus.Added));
+                comparedBomLine.Designators.Add(new Designator(targetDesignatorName, DesignatorComparisonStatus.Added));
             }
         }
         

@@ -7,7 +7,7 @@ using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 
-namespace Core.ExcelHandling;
+namespace Core.ExcelHandling.Npoi;
 
 public class NpoiExcel : IExcelReader, IExcelWriter
 {
@@ -24,46 +24,16 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         var sheet = workbook.GetSheetAt(0);
         var headers = sheet.GetRow(0).Cells.Select(cell => cell.StringCellValue).ToList();
         var rowCount = sheet.LastRowNum;
-        var properties = typeof(BomLine).GetProperties();
-        
+        var bomLineToExcelColumnMappings = MapBomLinePropertiesToExcelColumns(headers);
+    
         for (var i = 1; i <= rowCount; i++)
         {
             var row = sheet.GetRow(i);
-            var bomLine = new BomLine();
-            
+        
             if(row == null)
                 break;
 
-            foreach (var property in properties)
-            {
-                var attrs = (ExcelColumnName[])property.GetCustomAttributes(typeof(ExcelColumnName), false);
-
-                if (attrs.Length > 0)
-                {
-                    var column = headers.IndexOf(attrs[0].ColumnName);
-                    if(column != -1)
-                    {
-                        var cell = row.GetCell(column);
-                        if (property.PropertyType == typeof(string)) 
-                        {
-                            property.SetValue(bomLine, cell.ToString());
-                        }
-                        else if (property.PropertyType == typeof(int)) 
-                        {
-                            bomLine.Quantity = (int)cell.NumericCellValue;
-                        } 
-                        else if (property.PropertyType == typeof(List<Designator>))
-                        {
-                            var desigs = cell.ToString()
-                                .Split(new[] { ", ", "," }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                                .Select(name => new Designator(name))
-                                .ToList();
-
-                            property.SetValue(bomLine, desigs);
-                        } 
-                    }
-                }
-            }
+            var bomLine = MapRowToBomLine(row, bomLineToExcelColumnMappings);
             bomLines.Add(bomLine);
         }
         
@@ -72,6 +42,54 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             BomLines = bomLines,
             FileName = filename
         };
+    }
+    
+    private BomLine MapRowToBomLine(IRow row, List<NpoiRowToBomMapping> bomLineToExcelColumnMappings)
+    {
+        var bomLine = new BomLine();
+        
+        foreach (var item in bomLineToExcelColumnMappings)
+        {
+            var cell = row.GetCell(item.IndexInExcel);
+            var cellValue = cell.ToString();
+
+            if (item.PropertyInfo.PropertyType == typeof(string))
+            {
+                item.PropertyInfo.SetValue(bomLine, cellValue);
+            }
+            else if (item.PropertyInfo.PropertyType == typeof(int))
+            {
+                bomLine.Quantity = (int)cell.NumericCellValue;
+            }
+            else if (item.PropertyInfo.PropertyType == typeof(List<Designator>))
+            {
+                var desigs = cellValue
+                    .Split(new[] { ", ", "," }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Select(name => new Designator(name))
+                    .ToList();
+
+                item.PropertyInfo.SetValue(bomLine, desigs);
+            }
+        }
+
+        return bomLine;
+    }
+
+    private List<NpoiRowToBomMapping> MapBomLinePropertiesToExcelColumns(List<string> headers)
+    {
+        return typeof(BomLine).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(p => 
+            {
+                var excelColumnNameAttribute = p.GetCustomAttributes(typeof(ExcelColumnNameAttribute), false).Cast<ExcelColumnNameAttribute>().First();
+                return new NpoiRowToBomMapping
+                { 
+                    PropertyInfo = p, 
+                    ExcelColumnNameAttribute = excelColumnNameAttribute, 
+                    IndexInExcel = headers.IndexOf(excelColumnNameAttribute!.ColumnName)
+                };
+            })
+            .Where(x => x.IndexInExcel != -1)
+            .ToList();
     }
 
     private XSSFWorkbook CreateBomComparisonWorkbook(ComparedBom comparedBom)
@@ -100,10 +118,10 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         workbook.Write(file);
     }
 
-    public Stream WriteBomComparisonToStream(ComparedBom bom)
+    public Stream WriteBomComparisonToStream(ComparedBom comparedBom)
     {
         const bool leaveStreamOpen = true;
-        var workbook = CreateBomComparisonWorkbook(bom);
+        var workbook = CreateBomComparisonWorkbook(comparedBom);
         var stream = new MemoryStream();
         workbook.Write(stream, leaveStreamOpen);
         stream.Position = 0;
@@ -119,7 +137,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         for (int i = 0; i < properties.Length; i++)
         {
             var prop = properties[i];
-            var attr = ((ExcelColumnName[])prop.GetCustomAttributes(typeof(ExcelColumnName), false)).FirstOrDefault();
+            var attr = ((ExcelColumnNameAttribute[])prop.GetCustomAttributes(typeof(ExcelColumnNameAttribute), false)).FirstOrDefault();
 
             if (attr != null)
             {
@@ -206,7 +224,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         for (int i = 0; i < properties.Length; i++)
         {
             var property = properties[i];
-            var attr = (ExcelColumnName[])property.GetCustomAttributes(typeof(ExcelColumnName), false);
+            var attr = (ExcelColumnNameAttribute[])property.GetCustomAttributes(typeof(ExcelColumnNameAttribute), false);
 
             if (!attr.Any()) continue;
 
