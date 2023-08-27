@@ -83,8 +83,7 @@ public class NpoiExcel : IExcelReader, IExcelWriter
                 var excelColumnNameAttribute = p.GetCustomAttributes(typeof(ExcelColumnNameAttribute), false).Cast<ExcelColumnNameAttribute>().First();
                 return new NpoiRowToBomMapping
                 { 
-                    PropertyInfo = p, 
-                    ExcelColumnNameAttribute = excelColumnNameAttribute, 
+                    PropertyInfo = p,
                     IndexInExcel = headers.IndexOf(excelColumnNameAttribute!.ColumnName)
                 };
             })
