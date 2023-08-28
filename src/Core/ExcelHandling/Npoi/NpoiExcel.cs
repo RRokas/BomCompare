@@ -97,16 +97,26 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         
         var properties = typeof(ComparedBomLine).GetProperties();
         CreateHeader(sheet, properties);
-        sheet.SetAutoFilter(new CellRangeAddress(0, 0, 0, properties.Length - 1));
+        var columnCount = properties.Length - 1;
+        sheet.SetAutoFilter(new CellRangeAddress(0, 0, 0, columnCount));
         
         foreach (var bomLine in comparedBom.ComparedBomLines)
         {
             CreateBomLine(sheet, bomLine, properties);
         }
         
+        AutoSizeColumns(sheet);
         WriteComparisonFilenamesToNewSheet(workbook, comparedBom);
 
         return workbook;
+    }
+    
+    private void AutoSizeColumns(ISheet sheet)
+    {
+        for (var i = 0; i < sheet.GetRow(0).LastCellNum; i++)
+        {
+            sheet.AutoSizeColumn(i);
+        }
     }
 
     public void WriteBomComparisonToFile(string path, ComparedBom comparedBom)
