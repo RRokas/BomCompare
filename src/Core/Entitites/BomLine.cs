@@ -1,7 +1,6 @@
 ﻿using Core.Attributes;
-using Core.Entitites;
 
-namespace Core;
+namespace Core.Entitites;
 
 public class BomLine
 {

@@ -63,12 +63,11 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             }
             else if (item.PropertyInfo.PropertyType == typeof(List<Designator>))
             {
-                var desigs = cellValue
-                    .Split(new[] { ", ", "," }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                var designators = cellValue?.Split(new[] { ", ", "," }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .Select(name => new Designator(name))
                     .ToList();
 
-                item.PropertyInfo.SetValue(bomLine, desigs);
+                item.PropertyInfo.SetValue(bomLine, designators);
             }
         }
 
