@@ -5,4 +5,4 @@ pvz: removed BomLineComparisonStatus bus tik tada, kai visi tos eilutės designa
 Dėl ComparedBomLine ir ComparedBom kreivo sprendimo:
 Jei dubliuoju viską, dubliuoti reiks ir excel stulpelių pavadinimus abiems klasėms kurių reikia mapinimui rašymui/skaitymui.
 Gal tą palyginimo property pridėti prie "tėvines" klasės ir susikurti papildomą atributą kuris nurodys ar propertis naudojamas
-tik palyginimui? Tuo pačiu taip būtų galima panaikinti ComparedBom, ComparedBomLine klases.
+tik palyginimui? ComparedBomLine tada nebereikalingas.
