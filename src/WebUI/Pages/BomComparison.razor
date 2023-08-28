@@ -4,6 +4,7 @@
 @using Core
 @using Core.ExcelHandling
 @using NPOI.OpenXml4Net.Exceptions
+@using System.Diagnostics
 
 <h1>Bom Comparison</h1>
 <MudGrid>
@@ -25,6 +26,7 @@
 @inject IExcelReader ExcelReader
 @inject IExcelWriter ExcelWriter
 @inject IBomComparisonService BomComparisonService
+@inject ILogger<BomComparison> Logger
 
 @code {
     private Bom? _sourceBom;
@@ -75,9 +77,13 @@
     {
         if(_sourceBom is null || _targetBom is null)
             return;
-        
+
+        var stopwatch = Stopwatch.StartNew();
         _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
         PrepareComparisonResultForDownload();
+        stopwatch.Stop();
+        Logger.LogInformation($"Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
+                              $" Compared {_sourceBom.BomLines.Count} lines from source BOM with {_targetBom.BomLines.Count} lines from target BOM.");
     }
     
     private void PrepareComparisonResultForDownload()
