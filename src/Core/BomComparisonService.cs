@@ -30,23 +30,13 @@ public class BomComparisonService : IBomComparisonService
                 var comparedBomLine = CompareBomLine(sourceBomLine, targetBomLine);
                 comparedBom.Add(comparedBomLine);
             }
-            else if (sourceBomLine is not null)
+            else if (sourceBomLine is not null && targetBomLine is null)
             {
-                var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
-                comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Removed;
-                foreach (var designator in sourceBomLine.Designators)
-                    comparedBomLine.Designators.Add(new Designator(designator.Name, DesignatorComparisonStatus.Removed));
-                
-                comparedBom.Add(comparedBomLine);
+                comparedBom.Add(CreateRemovedBomLine(sourceBomLine));
             }
-            else if (targetBomLine is not null)
+            else if (targetBomLine is not null && sourceBomLine is null)
             {
-                var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(targetBomLine);
-                comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Added;
-                foreach (var designator in targetBomLine.Designators)
-                    comparedBomLine.Designators.Add(new Designator(designator.Name, DesignatorComparisonStatus.Added));
-                
-                comparedBom.Add(comparedBomLine);
+                comparedBom.Add(CreateAddedBomLine(targetBomLine));
             }
         }
 
@@ -83,6 +73,28 @@ public class BomComparisonService : IBomComparisonService
         comparedBomLine.ComparisonStatus = DetermineBomLineComparisonStatus(comparedBomLine.Designators);
         
         return comparedBomLine;
+    }
+    
+    private ComparedBomLine CreateAddedBomLine(BomLine targetBomLine)
+    {
+        var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(targetBomLine);
+        comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Added;
+        AddDesignators(comparedBomLine.Designators, targetBomLine.Designators, DesignatorComparisonStatus.Added);
+        return comparedBomLine;
+    }
+    
+    private ComparedBomLine CreateRemovedBomLine(BomLine sourceBomLine)
+    {
+        var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
+        comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Removed;
+        AddDesignators(comparedBomLine.Designators, sourceBomLine.Designators, DesignatorComparisonStatus.Removed);
+        return comparedBomLine;
+    }
+    
+    private static void AddDesignators(List<Designator> comparedDesignators, List<Designator> designators, DesignatorComparisonStatus status)
+    {
+        foreach (var designator in designators)
+            comparedDesignators.Add(new Designator(designator.Name, status));
     }
 
     private List<string> DistinctDesignatorsWithSourceOrdering(List<Designator> source, List<Designator> target)
