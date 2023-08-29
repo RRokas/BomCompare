@@ -2,8 +2,8 @@
 
 public enum BomLineComparisonStatus
 {
+    Modified,
     Unchanged,
     Added,
     Removed,
-    Modified
 }

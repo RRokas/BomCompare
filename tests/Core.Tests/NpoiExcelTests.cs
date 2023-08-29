@@ -1,5 +1,5 @@
 using Core.Entitites;
-using Core.ExcelHandling;
+using Core.ExcelHandling.Npoi;
 using Core.Tests.Utilities;
 
 namespace Core.Tests;

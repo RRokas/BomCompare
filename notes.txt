@@ -1,0 +1,8 @@
+DesignatorComparisonStatus ir BomLineComparisonStatus turi skirtingas reikšmes.
+pvz: removed BomLineComparisonStatus bus tik tada, kai visi tos eilutės designatoriai nebeegzistuoja,
+ o DesignatorComparisonStatus atsiranda kai tas vienas designatorius nebeegzistuoja.
+ 
+Dėl ComparedBomLine ir ComparedBom kreivo sprendimo:
+Jei dubliuoju viską, dubliuoti reiks ir excel stulpelių pavadinimus abiems klasėms kurių reikia mapinimui rašymui/skaitymui.
+Gal tą palyginimo property pridėti prie "tėvines" klasės ir susikurti papildomą atributą kuris nurodys ar propertis naudojamas
+tik palyginimui? ComparedBomLine tada nebereikalingas.

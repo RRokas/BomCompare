@@ -1,11 +1,11 @@
 namespace Core.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class ExcelColumnName : Attribute
+public class ExcelColumnNameAttribute : Attribute
 {
     public string ColumnName { get; }
 
-    public ExcelColumnName(string columnName)
+    public ExcelColumnNameAttribute(string columnName)
     {
         ColumnName = columnName;
     }

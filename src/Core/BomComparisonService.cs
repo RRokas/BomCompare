@@ -15,38 +15,29 @@ public class BomComparisonService : IBomComparisonService
     public ComparedBom CompareBom(Bom source, Bom target)
     {
         var comparedBom = new List<ComparedBomLine>();
-        foreach (var sourceBomLine in source.BomLines)
+        var distinctPartNumbers = source.BomLines
+            .Select(x => x.PartNumber)
+            .Union(target.BomLines.Select(x => x.PartNumber))
+            .Distinct()
+            .ToList();
+        
+        foreach (var partNumber in distinctPartNumbers)
         {
-            var targetBomLine = target.BomLines.FirstOrDefault(x => x.PartNumber == sourceBomLine.PartNumber);
-            if(targetBomLine is null)
+            var sourceBomLine = source.BomLines.Find(x => x.PartNumber == partNumber);
+            var targetBomLine = target.BomLines.Find(x => x.PartNumber == partNumber);
+            if (sourceBomLine is not null && targetBomLine is not null)
             {
-                var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
-                comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Removed;
-                foreach (var designator in sourceBomLine.Designators)
-                    comparedBomLine.Designators.Add(new Designator(designator.Name, DesignatorComparisonStatus.Removed));
-            
+                var comparedBomLine = CompareBomLine(sourceBomLine, targetBomLine);
                 comparedBom.Add(comparedBomLine);
             }
-            else
+            else if (sourceBomLine is not null && targetBomLine is null)
             {
-                comparedBom.Add(
-                    CompareBomLine(sourceBomLine, targetBomLine)
-                );
+                comparedBom.Add(CreateRemovedBomLine(sourceBomLine));
             }
-            
-        }
-        
-        var newPartNumbersInTarget = target.BomLines
-            .Select(t => t.PartNumber)
-            .Except(source.BomLines.Select(s => s.PartNumber))
-            .ToList();
-        foreach (var bomLine in target.BomLines.Where(x => newPartNumbersInTarget.Contains(x.PartNumber)))
-        {
-            var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(bomLine);
-            foreach (var designator in bomLine.Designators)
-                comparedBomLine.Designators.Add(new Designator(designator.Name, DesignatorComparisonStatus.Added));
-            comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Added;
-            comparedBom.Add(comparedBomLine);
+            else if (targetBomLine is not null && sourceBomLine is null)
+            {
+                comparedBom.Add(CreateAddedBomLine(targetBomLine));
+            }
         }
 
         return new ComparedBom
@@ -65,27 +56,63 @@ public class BomComparisonService : IBomComparisonService
             throw new ArgumentException("Part numbers must match to compare BOM lines");
 
         var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(source);
-
-        foreach (var sourceDesignator in source.Designators)
-        {
-            var targetDesignator = target.Designators.FirstOrDefault(x => x.Name == sourceDesignator.Name);
-            comparedBomLine.Designators.Add(targetDesignator is null
-                ? new Designator(sourceDesignator.Name, DesignatorComparisonStatus.Removed)
-                : new Designator(sourceDesignator.Name, DesignatorComparisonStatus.Unchanged));
-        }
+        var distinctDesignators = DistinctDesignatorsWithSourceOrdering(source.Designators, target.Designators);
         
-        foreach (var targetDesignator in target.Designators)
+        foreach (var designatorName in distinctDesignators)
         {
-            var sourceDesignator = source.Designators.FirstOrDefault(x => x.Name == targetDesignator.Name);
-            if (sourceDesignator is null)
-            {
-                comparedBomLine.Designators.Add(new Designator(targetDesignator.Name, DesignatorComparisonStatus.Added));
-            }
+            var sourceDesignatorName = source.Designators.Find(x => x.Name == designatorName);
+            var targetDesignatorName = target.Designators.Find(x => x.Name == designatorName);
+            if(sourceDesignatorName is not null && targetDesignatorName is not null)
+                comparedBomLine.Designators.Add(new Designator(designatorName, DesignatorComparisonStatus.Unchanged));
+            else if (sourceDesignatorName is not null && targetDesignatorName is null)
+                comparedBomLine.Designators.Add(new Designator(designatorName, DesignatorComparisonStatus.Removed));
+            else if (sourceDesignatorName is null && targetDesignatorName is not null)
+                comparedBomLine.Designators.Add(new Designator(designatorName, DesignatorComparisonStatus.Added));
         }
         
         comparedBomLine.ComparisonStatus = DetermineBomLineComparisonStatus(comparedBomLine.Designators);
         
         return comparedBomLine;
+    }
+    
+    private ComparedBomLine CreateAddedBomLine(BomLine targetBomLine)
+    {
+        var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(targetBomLine);
+        comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Added;
+        AddDesignators(comparedBomLine.Designators, targetBomLine.Designators, DesignatorComparisonStatus.Added);
+        return comparedBomLine;
+    }
+    
+    private ComparedBomLine CreateRemovedBomLine(BomLine sourceBomLine)
+    {
+        var comparedBomLine = ComparedBomLine.FromBomLineWithoutDesignators(sourceBomLine);
+        comparedBomLine.ComparisonStatus = BomLineComparisonStatus.Removed;
+        AddDesignators(comparedBomLine.Designators, sourceBomLine.Designators, DesignatorComparisonStatus.Removed);
+        return comparedBomLine;
+    }
+    
+    private static void AddDesignators(List<Designator> comparedDesignators, List<Designator> designators, DesignatorComparisonStatus status)
+    {
+        foreach (var designator in designators)
+            comparedDesignators.Add(new Designator(designator.Name, status));
+    }
+
+    private List<string> DistinctDesignatorsWithSourceOrdering(List<Designator> source, List<Designator> target)
+    {
+        var sourceNames = source.Select(x => x.Name).Distinct().ToList();
+        var targetNames = target.Select(x => x.Name).Distinct().ToList();
+        
+        var distinctDesignatorsWithSourceOrdering = sourceNames;
+
+        for (int i = 0; i < targetNames.Count; i++)
+        {
+            if(distinctDesignatorsWithSourceOrdering.Contains(targetNames[i]))
+                continue;
+            
+            distinctDesignatorsWithSourceOrdering.Insert(i, targetNames[i]);
+        }
+
+        return distinctDesignatorsWithSourceOrdering;
     }
 
     private BomLineComparisonStatus DetermineBomLineComparisonStatus(List<Designator> designators)
