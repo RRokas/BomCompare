@@ -105,18 +105,9 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             CreateBomLine(sheet, bomLine, properties);
         }
         
-        AutoSizeColumns(sheet);
         WriteComparisonFilenamesToNewSheet(workbook, comparedBom);
 
         return workbook;
-    }
-    
-    private void AutoSizeColumns(ISheet sheet)
-    {
-        for (var i = 0; i < sheet.GetRow(0).LastCellNum; i++)
-        {
-            sheet.AutoSizeColumn(i);
-        }
     }
 
     public void WriteBomComparisonToFile(string path, ComparedBom comparedBom)
@@ -168,9 +159,8 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         return cellStyle;
     }
     
-    private void CreateCellAndSetValue(IRow row, int cellIndex, object cellValue)
+    private void SetCellValue(ICell cell, object cellValue)
     {
-        var cell = row.CreateCell(cellIndex);
         switch(cellValue)
         {
             case List<string> strList:
@@ -237,7 +227,9 @@ public class NpoiExcel : IExcelReader, IExcelWriter
             if (!attr.Any()) continue;
 
             var value = property.GetValue(bomLine, null);
-            CreateCellAndSetValue(row, i, value ?? String.Empty);
+            var cell = row.CreateCell(i);
+            SetCellValue(cell, value ?? String.Empty);
+            cell.AutoSizeCellColumnWidth();
         }
     }
     
@@ -260,5 +252,9 @@ public class NpoiExcel : IExcelReader, IExcelWriter
         var targetFilenameCell = secondRow.CreateCell(1);
         targetFilenameCell.SetCellValue(comparedBom.TargetBom.FileName);
         
+        sourceCell.AutoSizeCellColumnWidth();
+        targetCell.AutoSizeCellColumnWidth();
+        sourceFilenameCell.AutoSizeCellColumnWidth();
+        targetFilenameCell.AutoSizeCellColumnWidth();
     }
 }
