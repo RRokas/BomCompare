@@ -49,6 +49,7 @@
     private bool _downloadReady;
     private Stream? _downloadStream;
     private string? _downloadFileName;
+    private Guid _currentComparisonGuid;
 
     private void ResetComparisonStatuses()
     {
@@ -98,18 +99,16 @@
 
     private void CompareBoms()
     {
+        _currentComparisonGuid = Guid.NewGuid();
         if (_sourceBom is null || _targetBom is null)
             return;
-        
-        var comparisonGuid = Guid.NewGuid();
+
         var stopwatch = Stopwatch.StartNew();
         _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
-        Logger.LogInformation($"{comparisonGuid} Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
+        Logger.LogInformation($"{_currentComparisonGuid} Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
                               $" Compared {_sourceBom.BomLines.Count} lines from source BOM with {_targetBom.BomLines.Count} lines from target BOM.");
-        
-        stopwatch.Restart();
+
         _ = PrepareComparisonResultForDownload();
-        Logger.LogInformation($"{comparisonGuid} Download prepared in {stopwatch.ElapsedMilliseconds}ms.");
         
         _comparisonReady = true;
         StateHasChanged();
@@ -125,8 +124,10 @@
 
         try
         {
+            var stopwatch = Stopwatch.StartNew();
             _downloadStream = await Task.Run(() =>
                 ExcelWriter.WriteBomComparisonToStream(_comparedBom));
+            Logger.LogInformation($"{_currentComparisonGuid} Download prepared in {stopwatch.ElapsedMilliseconds}ms.");
         }
         catch (Exception e)
         {
