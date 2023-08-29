@@ -28,7 +28,10 @@
         }
     </MudItem>
     <MudItem xs="12">
-        <BomComparisonPreviewTable ComparedBom="_comparedBom"/>
+        @if (_comparisonReady)
+        {
+            <BomComparisonPreviewTable ComparedBom="_comparedBom"/>
+        }
     </MudItem>
 </MudGrid>
 
@@ -42,10 +45,17 @@
     private Bom? _sourceBom;
     private Bom? _targetBom;
     private ComparedBom? _comparedBom;
+    private bool _comparisonReady;
     private bool _downloadReady;
     private Stream? _downloadStream;
     private string? _downloadFileName;
 
+    private void ResetComparisonStatuses()
+    {
+        _comparisonReady = false;
+        _downloadReady = false;
+    }
+    
     private async Task<Stream> GetMemoryStreamFromIBrowserFile(IBrowserFile file)
     {
         var memoryStream = new MemoryStream();
@@ -76,27 +86,33 @@
 
     private Task ReadSourceBomFile(IBrowserFile file)
     {
-        _downloadReady = false;
+        ResetComparisonStatuses();
         return ReadBomFile(file, bomLines => _sourceBom = bomLines);
     }
 
     private Task ReadTargetBomFile(IBrowserFile file)
     {
-        _downloadReady = false;
+        ResetComparisonStatuses();
         return ReadBomFile(file, bomLines => _targetBom = bomLines);
     }
 
-    private async Task CompareBoms()
+    private void CompareBoms()
     {
         if (_sourceBom is null || _targetBom is null)
             return;
-
+        
+        var comparisonGuid = Guid.NewGuid();
         var stopwatch = Stopwatch.StartNew();
         _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
-        await PrepareComparisonResultForDownload();
-        stopwatch.Stop();
-        Logger.LogInformation($"Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
+        Logger.LogInformation($"{comparisonGuid} Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
                               $" Compared {_sourceBom.BomLines.Count} lines from source BOM with {_targetBom.BomLines.Count} lines from target BOM.");
+        
+        stopwatch.Restart();
+        _ = PrepareComparisonResultForDownload();
+        Logger.LogInformation($"{comparisonGuid} Download prepared in {stopwatch.ElapsedMilliseconds}ms.");
+        
+        _comparisonReady = true;
+        StateHasChanged();
     }
 
     private async Task PrepareComparisonResultForDownload()
