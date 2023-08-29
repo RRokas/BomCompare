@@ -123,6 +123,17 @@
             return;
         }
 
+        try
+        {
+            _downloadStream = await Task.Run(() =>
+                ExcelWriter.WriteBomComparisonToStream(_comparedBom));
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error writing comparison result to stream");
+            Snackbar.Add("Error preparing comparison result for download", Severity.Error);
+        }
+
         _downloadStream = await Task.Run(() =>
             ExcelWriter.WriteBomComparisonToStream(_comparedBom));
 
