@@ -15,7 +15,17 @@
         <DragAndDropUpload HintText="Target BOM (.xls | .xlsx)" OnFileSelected="ReadTargetBomFile"/>
     </MudItem>
     <MudItem xs="12">
-        <DownloadStreamAsFileButton FileName="@_downloadFileName" FileContentStream="@_downloadStream" Text="Download comparison"/>
+        @if (!_downloadReady && _sourceBom is not null && _targetBom is not null)
+        {
+            <MudText>
+                <MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true"/>
+                Preparing download...
+            </MudText>
+        }
+        else if(_downloadReady)
+        {
+            <DownloadStreamAsFileButton FileName="@_downloadFileName" FileContentStream="@_downloadStream" Text="Download comparison"/>
+        }
     </MudItem>
     <MudItem xs="12">
         <BomComparisonPreviewTable ComparedBom="_comparedBom"/>
@@ -32,17 +42,18 @@
     private Bom? _sourceBom;
     private Bom? _targetBom;
     private ComparedBom? _comparedBom;
+    private bool _downloadReady;
     private Stream? _downloadStream;
     private string? _downloadFileName;
-    
+
     private async Task<Stream> GetMemoryStreamFromIBrowserFile(IBrowserFile file)
     {
         var memoryStream = new MemoryStream();
         await file.OpenReadStream().CopyToAsync(memoryStream);
         memoryStream.Position = 0;
         return memoryStream;
-    }    
-    
+    }
+
     private async Task ReadBomFile(IBrowserFile file, Action<Bom> onSuccess)
     {
         try
@@ -65,28 +76,30 @@
 
     private Task ReadSourceBomFile(IBrowserFile file)
     {
+        _downloadReady = false;
         return ReadBomFile(file, bomLines => _sourceBom = bomLines);
     }
 
     private Task ReadTargetBomFile(IBrowserFile file)
     {
+        _downloadReady = false;
         return ReadBomFile(file, bomLines => _targetBom = bomLines);
     }
-    
-    private void CompareBoms()
+
+    private async Task CompareBoms()
     {
-        if(_sourceBom is null || _targetBom is null)
+        if (_sourceBom is null || _targetBom is null)
             return;
 
         var stopwatch = Stopwatch.StartNew();
         _comparedBom = BomComparisonService.CompareBom(_sourceBom, _targetBom);
-        PrepareComparisonResultForDownload();
+        await PrepareComparisonResultForDownload();
         stopwatch.Stop();
         Logger.LogInformation($"Bom comparison took {stopwatch.ElapsedMilliseconds}ms." +
                               $" Compared {_sourceBom.BomLines.Count} lines from source BOM with {_targetBom.BomLines.Count} lines from target BOM.");
     }
-    
-    private void PrepareComparisonResultForDownload()
+
+    private async Task PrepareComparisonResultForDownload()
     {
         if (_comparedBom is null)
         {
@@ -94,10 +107,14 @@
             return;
         }
 
-        _downloadStream = ExcelWriter.WriteBomComparisonToStream(_comparedBom);
+        _downloadStream = await Task.Run(() =>
+            ExcelWriter.WriteBomComparisonToStream(_comparedBom));
+
         _downloadFileName = $"BomComparisonResult_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
         Snackbar.Add("Comparison result ready for download", Severity.Success);
-        
+
+        _downloadReady = true;
         StateHasChanged();
     }
+
 }
